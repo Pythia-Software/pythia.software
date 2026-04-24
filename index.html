@@ -1,0 +1,980 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Pythia Software</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ========================================================================
+       PALETTE — edit these to re-theme the whole page.
+       ======================================================================== */
+    :root {
+      --ink:         #0A2540;   /* deep blueprint navy — page ground          */
+      --ink-deep:    #061A30;   /* popover background                         */
+      --chalk:       #F2EEE3;   /* cream — primary ink                        */
+      --chalk-dim:   rgba(242,238,227,0.72);
+      --chalk-faint: rgba(242,238,227,0.38);
+      --chalk-ghost: rgba(242,238,227,0.14);
+      --accent:      #C8A15B;   /* brass — reserved for emphasis              */
+    }
+
+    /* ========================================================================
+       RESET + BASE
+       ======================================================================== */
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--ink);
+      color: var(--chalk);
+      font-family: "Cormorant Garamond", serif;
+    }
+
+    /* Fixed-width, centered column for every block in the document flow. */
+    .page {
+      position: relative;
+      min-height: 100vh;
+      overflow: hidden;
+      padding-bottom: 96px;
+    }
+
+    /* ========================================================================
+       BACKGROUND GRID — graph-paper feel behind the essay.
+       Three tiers of line-weight in a 4-step cycle per axis:
+         major          brightest, every 4 * step
+         semi-major     middle,    every 4 * step (offset by 2)
+         semi-semi      faintest,  at the two in-between positions
+       Uses a repeating SVG pattern. `step` = 48px below.
+       ======================================================================== */
+    .grid-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ========================================================================
+       MASTHEAD — tiny mono-space ribbon at the very top.
+       ======================================================================== */
+    .masthead {
+      position: relative;
+      padding: 52px 140px 0;
+      display: flex;
+      justify-content: center;
+      z-index: 1;
+    }
+    .masthead-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--chalk-dim);
+    }
+    .masthead-dot {
+      width: 4px; height: 4px; border-radius: 50%;
+      background: var(--chalk-faint);
+    }
+
+    /* ========================================================================
+       TITLE
+       ======================================================================== */
+    .title-block {
+      position: relative;
+      text-align: center;
+      margin: 44px auto 64px;
+      padding: 0 24px;
+      z-index: 1;
+    }
+    .title-block h1 {
+      margin: 0;
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: clamp(44px, 6vw, 72px);
+      line-height: 1.02;
+      letter-spacing: -0.015em;
+    }
+    .title-block .subtitle {
+      margin-top: 22px;
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: 16px;
+      letter-spacing: 0.01em;
+      color: var(--chalk-dim);
+    }
+
+    /* ========================================================================
+       ESSAY COLUMN
+       • <p> defaults: body copy.
+       • data-domain="antiquity" — italicises the paragraph.
+       • data-domain="software"  — tabular digits.
+       • data-domain="synthesis" — slightly bolder weight.
+       • data-emphasis           — gold tone + larger size (thesis paragraphs).
+       • data-rope-after="single" / "double" — render rope(s) below this para.
+         CSS also expands the neighbour's top margin so ropes breathe.
+       ======================================================================== */
+    .essay {
+      position: relative;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 0 24px 48px;
+      z-index: 1;
+    }
+    .essay p {
+      margin: 18px 0 0;
+      font-family: "Cormorant Garamond", serif;
+      font-weight: 400;
+      font-size: 19.5px;
+      line-height: 1.58;
+      color: var(--chalk);
+      letter-spacing: 0.003em;
+      text-wrap: pretty;
+    }
+    .essay p:first-child { margin-top: 0; }
+
+    .essay p[data-domain="antiquity"] { font-style: italic; }
+    .essay p[data-domain="software"]  { font-variant-numeric: tabular-nums lining-nums; }
+    .essay p[data-domain="synthesis"] { font-weight: 500; }
+
+    .essay p[data-emphasis] {
+      color: var(--accent);
+      font-size: 22px;
+    }
+
+    /* Margin rules for rope boundaries.
+       A paragraph that ENDS a rope boundary gets bigger margin-bottom;
+       the NEXT paragraph gets the matching margin-top via adjacent-sibling. */
+    .essay p[data-rope-after="single"] { margin-bottom: 100px; }
+    .essay p[data-rope-after="double"] { margin-bottom: 180px; }
+    .essay p[data-rope-after="single"] + p { margin-top: 100px; }
+    .essay p[data-rope-after="double"] + p { margin-top: 180px; }
+
+    /* Mobile: widen the essay's horizontal padding so the single vertical
+       rope rail on each side has room to sit in the margin without
+       crossing the text column. */
+    @media (max-width: 720px) {
+      .essay { padding: 0 56px 48px; }
+      .masthead { padding: 52px 24px 0; }
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    /* ========================================================================
+       FOOTNOTE MARKERS + POPOVERS
+       A marker is <sup class="fn-marker">[n]<span class="fn-body" hidden>...</span></sup>
+       The body lives inline next to its number so edits are local.
+       The popover is injected into <body> by JS so it floats above the ropes.
+       ======================================================================== */
+    .fn-marker {
+      position: relative;
+      display: inline-block;
+      margin-left: 1px;
+      padding: 0 1px;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 9.5px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.02em;
+      vertical-align: super;
+      line-height: 1;
+      cursor: help;
+      outline: none;
+      text-decoration: none;
+    }
+    .fn-marker:hover,
+    .fn-marker:focus-visible { color: var(--chalk); }
+
+    .fn-pop {
+      position: fixed;
+      z-index: 9999;
+      width: max-content;
+      max-width: min(340px, calc(100vw - 32px));
+      padding: 14px 16px;
+      background: var(--ink-deep);
+      border: 1px solid rgba(242,238,227,0.22);
+      box-shadow: 0 6px 28px rgba(0,0,0,0.55);
+      color: var(--chalk);
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 15px;
+      line-height: 1.5;
+      letter-spacing: 0.003em;
+      pointer-events: auto;
+      animation: fn-pop-in 120ms ease-out;
+    }
+    @keyframes fn-pop-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .fn-pop-num {
+      display: inline-block;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-style: normal;
+      font-size: 9.5px;
+      letter-spacing: 0.16em;
+      color: var(--accent);
+      margin-right: 8px;
+      vertical-align: 1px;
+    }
+    .fn-pop a {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-style: normal;
+      font-size: 12.5px;
+      color: var(--accent);
+      text-decoration: underline;
+      text-decoration-color: rgba(200,161,91,0.4);
+      text-underline-offset: 2px;
+      word-break: break-all;
+    }
+    .fn-pop a:hover { text-decoration-color: var(--accent); }
+
+    /* ========================================================================
+       FOOTER
+       ======================================================================== */
+    .footer {
+      position: relative;
+      z-index: 1;
+      max-width: 560px;
+      margin: 44px auto 0;
+      padding: 28px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .tick {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--chalk-faint);
+    }
+
+    /* ========================================================================
+       FABRIC OVERLAY — woven olive-and-knot ropes injected by JS.
+       ======================================================================== */
+    .fabric {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      overflow: visible;
+    }
+    .fabric svg { display: block; overflow: visible; }
+  </style>
+</head>
+
+<body>
+<main class="page" id="page">
+
+  <!-- Background graph-paper grid: three line-weight tiers in a 4-step cycle. -->
+  <svg class="grid-bg" aria-hidden="true">
+    <defs>
+      <pattern id="grid-pattern" width="192" height="192" patternUnits="userSpaceOnUse">
+        <!-- semi-semi-major (weakest): offsets 1 and 3 of the 4-step cycle -->
+        <path d="M 48 0 L 48 192"   stroke="#F2EEE3" stroke-opacity="0.081" stroke-width="0.5"/>
+        <path d="M 144 0 L 144 192" stroke="#F2EEE3" stroke-opacity="0.081" stroke-width="0.5"/>
+        <path d="M 0 48 L 192 48"   stroke="#F2EEE3" stroke-opacity="0.081" stroke-width="0.5"/>
+        <path d="M 0 144 L 192 144" stroke="#F2EEE3" stroke-opacity="0.081" stroke-width="0.5"/>
+        <!-- semi-major (middle): offset 2 -->
+        <path d="M 96 0 L 96 192"   stroke="#F2EEE3" stroke-opacity="0.189" stroke-width="0.6"/>
+        <path d="M 0 96 L 192 96"   stroke="#F2EEE3" stroke-opacity="0.189" stroke-width="0.6"/>
+        <!-- major (brightest): offset 0 -->
+        <path d="M 0 0 L 0 192"     stroke="#F2EEE3" stroke-opacity="0.342" stroke-width="0.75"/>
+        <path d="M 0 0 L 192 0"     stroke="#F2EEE3" stroke-opacity="0.342" stroke-width="0.75"/>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#grid-pattern)" />
+  </svg>
+
+  <!-- Masthead ribbon -->
+  <header class="masthead">
+    <div class="masthead-row">
+      <span>Pythia Software LLC</span>
+      <span class="masthead-dot"></span>
+      <span>Est. MMXXVI</span>
+      <span class="masthead-dot"></span>
+      <span>Colorado</span>
+    </div>
+  </header>
+
+  <!-- Title -->
+  <div class="title-block">
+    <h1>A View from Delphi</h1>
+    <div class="subtitle">by <a href="https://grady.dev">Grady Berry Ward</a></div>
+  </div>
+
+  <!-- ==========================================================================
+       ESSAY BODY
+       Each paragraph carries tags describing its visual treatment and whether
+       a rope sits after it. Footnote markers are inline; their body is a
+       hidden <span class="fn-body"> that the popover script reads.
+       ========================================================================== -->
+  <article class="essay" id="essay">
+
+    <p data-domain="software">
+      In information theory, there is a concept called an oracle<sup class="fn-marker" data-n="1" tabindex="0">[1]
+        <span class="fn-body" hidden>Not to be confused with Larry Ellison's law firm posing as a software company.</span></sup>
+       - a system that can reliably and correctly answer a question of a given kind<sup class="fn-marker" data-n="2" tabindex="0">[2]
+        <span class="fn-body" hidden><a href="https://en.wikipedia.org/wiki/Oracle_machine" target="_blank" rel="noreferrer">en.wikipedia.org/wiki/Oracle_machine</a></span></sup>.
+        When the term is used in software, it is misappropriated to describe a machine whose behavior is 
+        authoritative<sup class="fn-marker" data-n="3" tabindex="0">[3]<span class="fn-body" hidden>
+          For example, during a migration from System A (the original, trusted system) to System B (the faster, modern replacement), 
+          engineers will treat System A like an oracle, and try to cajole or brute-force system B into lockstep.</span></sup>.
+    </p>
+
+    <p data-domain="software" data-rope-after="single">Thus when we speak of an oracle in the world of software we're often really thinking about very large sets of pairs - inputs and outputs. ML, AI, reverse engineering, cryptography - all of these fields interrogate, predict, and emulate system behavior through analyzing pairs of stimulus and response.</p>
+
+    <p data-domain="antiquity" data-rope-after="single">The Oracle from antiquity, the one at the temple of Apollo at Delphi, profoundly changed the course of Greek history. Many of her prophecies not just foretold the fates of city states and empires, but influenced the choices that developed and doomed them. These include Athens' admonishment to "trust in wooden walls", Phillip II's hint toward "silver spears" to conquer the world, and Croesus' "destruction of a mighty empire if you attack" (it turned out to be his own)<sup class="fn-marker" data-n="4" tabindex="0">[4]<span class="fn-body" hidden><a href="https://en.wikipedia.org/wiki/List_of_oracular_statements_from_Delphi" target="_blank" rel="noreferrer">en.wikipedia.org/wiki/List_of_oracular_statements_from_Delphi</a></span></sup><sup class="fn-marker" data-n="5" tabindex="0">[5]<span class="fn-body" hidden>Outside of conquest, the Delphic Oracle also counseled Cicero to find his voice, set in motion Nero's fate, and inspired the Spartan code of morality.</span></sup>. When believed, prophecy changes the course of events through its utterance.</p>
+
+    <p data-domain="software" data-rope-after="single">Through a plethora of inputs and outputs, I've gained both appreciation for and skepticism of AI<sup class="fn-marker" data-n="6" tabindex="0">[6]<span class="fn-body" hidden>Like most other Software Engineers, I have found my work with AI transfixing - in a very short time period, everything is suddenly possible, malleable, concerning, and surprising.</span></sup>. Some capabilities - reasoning, discovery, creativity - are developing quickly and already proving useful. Some flaws - accuracy, judgement, and empathy to name a few - seem like they are stuck, unlikely to be improved by a bigger training run. Many of the things that our minds are capable of are cultivated through experience, internal state, relationship, and the divine.</p>
+
+    <p data-domain="antiquity">The Oracle at Delphi had a title - that of Pythia (a role assumed by many individuals over time, like the Pope)<sup class="fn-marker" data-n="7" tabindex="0">[7]<span class="fn-body" hidden><a href="https://en.wikipedia.org/wiki/Pythia" target="_blank" rel="noreferrer">en.wikipedia.org/wiki/Pythia</a></span></sup>. Pythia - the high Priestess - was the woman charged with dispensing Apollo's wisdom. While accounts of how she worked are scarce and conflicting, this may have involved the inhalation of psychedelic fumes from the earth, the transcription and interpretation of other priestesses and priests, and a variety of cleansing rituals to prepare both the Oracle and supplicant for the truth.</p>
+
+    <p data-domain="antiquity" data-rope-after="single">Pythia served as the conduit for something - whether it was fumes, the informational networks of the well informed clergy<sup class="fn-marker" data-n="8" tabindex="0">[8]<span class="fn-body" hidden>It is commonly thought that Pythia was aided by the large staff of the temple of Apollo, whose foreign religious emissaries made the temple of Apollo a hub of information about the Greek world, and might slightly demystify some of the more prescient prophecies.</span></sup>, or the will of Apollo - she was the pipe through which humans conversed with something else, and through that counsel charted the course of human events.</p>
+
+    <p data-domain="synthesis" data-rope-after="double">LLMs have intelligence of a different kind. Unlocking their value in contexts that matter to us humans will require deterministic processes that are attuned to their failure modes and peculiarities - software that aims to be a conduit between this alien intelligence, and our human preferences, values, and ambitions.</p>
+
+    <p data-domain="synthesis" data-emphasis data-rope-after="double">This is the vision that animates Pythia Software: to build translation between mechanistic capabilities, and human goals.</p>
+
+    <p data-domain="synthesis">Our first two projects build infrastructure around LLMs to produce reliability and judgement that their stochastic nature cannot achieve by default.</p>
+
+    <p data-domain="synthesis">* In the first, we're using swarms of agents to automate black-box migrations, with Excel as a first target. Excel is the lingua franca of computational modelers in actuary, finance, and the environment, but is often too slow for simulation. Our solution - <a href="https://xplo.pythia.software">xplo</a> has used extensive LLM scaffolding to painstakingly reproduce the Excel engine. That's just the start - this infrastructure will eventually generate replacements for deterministic systems of all kinds.</p>
+
+    <p data-domain="synthesis" data-rope-after="double">* In the second, we're building software to quantify text against arbitrary human described criteria. LLMs are famously bad at generating numerical grades, but are competent at giving qualitative feedback and answering straightforward questions. Our project, Tally, aims to explore how we can elicit numerical evaluation from LLMs that comports with human judgement, even though these systems think in terms of words, not numbers. Tally is showing early promise in solving problems like scientific reputation, content alignment, and subjective filtration.</p>
+
+    <p data-domain="synthesis" data-emphasis data-rope-after="double">
+      AI is young - how it will be scaffolded, factored, and interpreted is still unsettled, and could be profoundly harmful.
+      Technologists have a bad habit of allowing the quirks and contours of technology to drive 
+      how it is applied, rather than following and serving the needs of people. 
+      Pythia will be different - a conduit through which humans can ask qustions and recieve answers.
+    </p>
+
+    <p />
+
+  </article>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <span class="tick">Pythia Software LLC &middot; MMXXVI</span>
+    <span class="tick"><a href="mailto:hello@pythia.software">hello@pythia.software</a></span>
+  </footer>
+
+  <!-- Fabric overlay — rope SVG is injected here by the script below. -->
+  <div class="fabric" id="fabric"></div>
+
+</main>
+
+<!--
+====================================================================================
+  SCRIPT
+  Two jobs:
+    1. Build the decorative "fabric" of woven olive-and-knot ropes around the
+       essay. Rope Y positions are measured from the DOM at runtime so they sit
+       in the gutters between paragraphs that carry `data-rope-after`.
+    2. Wire up the footnote popovers — each <sup class="fn-marker"> opens a
+       floating popover that reads its body from the sibling <span class="fn-body">.
+
+  The code is organised into labelled sections. Tune the knobs in the CONFIG
+  section to change rope density, wave amplitude, scale, or seed.
+====================================================================================
+-->
+<script>
+(function () {
+  'use strict';
+
+  // ==========================================================================
+  // CONFIG — tweak these to restyle the rope fabric.
+  // ==========================================================================
+  const CFG = {
+    ink:        '#0A2540',   // must match the CSS --ink (rope interior fill)
+    chalk:      '#F2EEE3',   // rope stroke colour
+    seed:       19,          // rng seed; same value = identical rope layout
+    extend:     160,         // how far ropes extend past the page edges (px)
+    doubleGap:  60,          // vertical gap between paired ("double") ropes
+    mobileBP:   720,         // viewport below this => single rail per side
+    stroke:     1.0,         // rope stroke width
+    flavorScale: 0.5,        // multiplier on olive L/w (0.5 = half-size)
+    railWave:   8,           // vertical-rope lateral undulation amplitude
+    crossWave:  11,          // horizontal-rope lateral undulation amplitude
+    // Indices into FLAVORS that rails and cross-ropes cycle through.
+    railFlavors:  [5, 1, 4, 5, 1, 4],
+    crossFlavors: [0, 3, 2, 4, 0, 3, 2, 4],
+  };
+
+  // Olive families. Each flavor is a shape-profile (length, body width, how
+  // many stripes, etc). A rope picks one and all its olives share those
+  // dimensions, with small random jitter per olive.
+  const FLAVORS = [
+    { L: 130, w: 26, knotRatio: 0.11, stripes: 4,  stripeAngle: 52, bow: 2.0 },
+    { L: 110, w: 16, knotRatio: 0.07, stripes: 6,  stripeAngle: 56, bow: 2.2 },
+    { L: 80,  w: 20, knotRatio: 0.13, stripes: 5,  stripeAngle: 54, bow: 2.1 },
+    { L: 100, w: 32, knotRatio: 0.09, stripes: 3,  stripeAngle: 50, bow: 1.9 },
+    { L: 110, w: 22, knotRatio: 0.08, stripes: 10, stripeAngle: 58, bow: 2.3 },
+    { L: 170, w: 20, knotRatio: 0.06, stripes: 8,  stripeAngle: 56, bow: 2.2 },
+  ];
+
+  // ==========================================================================
+  // RNG — seeded deterministic PRNG so rope layout is reproducible.
+  // ==========================================================================
+  function makeRng(seed) {
+    let s = seed >>> 0;
+    return function () {
+      s = (s + 0x6D2B79F5) >>> 0;
+      let t = s;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function jitter(rng, amount) { return (rng() - 0.5) * 2 * amount; }
+
+  function pickFlavor(rng, direction, flavorIdx) {
+    const base = FLAVORS[flavorIdx];
+    return {
+      L: Math.round(base.L * (0.92 + rng() * 0.16)),
+      w: Math.round(base.w * (0.94 + rng() * 0.12)),
+      knotRatio: base.knotRatio * (0.88 + rng() * 0.24),
+      stripes: Math.max(3, base.stripes + (rng() < 0.3 ? (rng() < 0.5 ? -1 : 1) : 0)),
+      stripeAngle: base.stripeAngle,
+      bow: base.bow,
+      direction: direction,
+    };
+  }
+
+  // ==========================================================================
+  // PATH MATH — cubic bezier sampling and arc-length rope layout.
+  // ==========================================================================
+  function bezierPoint(s, t) {
+    const u = 1 - t;
+    return {
+      x: u*u*u*s.p0.x + 3*u*u*t*s.p1.x + 3*u*t*t*s.p2.x + t*t*t*s.p3.x,
+      y: u*u*u*s.p0.y + 3*u*u*t*s.p1.y + 3*u*t*t*s.p2.y + t*t*t*s.p3.y,
+    };
+  }
+  function samplePath(segments, samplesPerSeg) {
+    const pts = [];
+    for (let si = 0; si < segments.length; si++) {
+      for (let i = 0; i <= samplesPerSeg; i++) {
+        pts.push(bezierPoint(segments[si], i / samplesPerSeg));
+      }
+    }
+    return pts;
+  }
+  // Walk the sampled curve placing knots exactly L apart by straight-line
+  // distance. Each consecutive pair of knots defines one olive's span.
+  function layoutRope(segments, L, startPoint) {
+    const samples = samplePath(segments, 120);
+    const MAX_KNOTS = 500;
+    const points = [];
+    let anchorIdx = 0;
+
+    if (startPoint) {
+      let best = Infinity;
+      for (let i = 0; i < samples.length; i++) {
+        const dx = samples[i].x - startPoint.x;
+        const dy = samples[i].y - startPoint.y;
+        const d2 = dx*dx + dy*dy;
+        if (d2 < best) { best = d2; anchorIdx = i; }
+      }
+    }
+    points.push({ x: samples[anchorIdx].x, y: samples[anchorIdx].y });
+
+    let idx = anchorIdx;
+    while (points.length < MAX_KNOTS) {
+      const anchor = points[points.length - 1];
+      let j = idx + 1;
+      while (j < samples.length) {
+        const dx = samples[j].x - anchor.x;
+        const dy = samples[j].y - anchor.y;
+        if (dx*dx + dy*dy >= L*L) break;
+        j++;
+      }
+      if (j >= samples.length) break;
+      // Linear interpolation between samples j-1 and j to land exactly L away.
+      const a = samples[j - 1], b = samples[j];
+      const ax = a.x - anchor.x, ay = a.y - anchor.y;
+      const bx = b.x - a.x,      by = b.y - a.y;
+      const A = bx*bx + by*by;
+      const B = 2 * (ax*bx + ay*by);
+      const C = ax*ax + ay*ay - L*L;
+      const disc = B*B - 4*A*C;
+      let t = 1;
+      if (disc >= 0 && A > 0) {
+        const t1 = (-B + Math.sqrt(disc)) / (2 * A);
+        const t2 = (-B - Math.sqrt(disc)) / (2 * A);
+        if (t1 >= 0 && t1 <= 1) t = t1;
+        else if (t2 >= 0 && t2 <= 1) t = t2;
+      }
+      points.push({ x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) });
+      idx = j;
+    }
+    return points;
+  }
+
+  // ==========================================================================
+  // ROPE PATH BUILDERS — build a chain of cubic beziers along the given axis
+  // with a sinusoidal wobble so the rope looks hand-drawn.
+  // ==========================================================================
+  function buildVRope(x, y0, y1, rng, waveAmp, phaseIn, wobbleIn) {
+    const wavePeriod = 140;
+    const phase  = phaseIn  != null ? phaseIn  : rng() * Math.PI * 2;
+    const wobble = wobbleIn != null ? wobbleIn : 0.6 + rng() * 0.8;
+    const anchors = [];
+    for (let y = y0; y <= y1 + wavePeriod; y += wavePeriod) {
+      const t = (y - y0) / wavePeriod;
+      const lateral = Math.sin(phase + t * Math.PI * wobble) * waveAmp
+                    + jitter(rng, waveAmp * 0.15);
+      anchors.push({ x: x + lateral, y: y });
+    }
+    const segs = [];
+    for (let i = 0; i < anchors.length - 1; i++) {
+      const p0 = anchors[i], p3 = anchors[i + 1];
+      const h = (p3.y - p0.y) * 0.5;
+      segs.push({
+        p0: p0,
+        p1: { x: p0.x + (p0.x - x) * 0.35, y: p0.y + h },
+        p2: { x: p3.x + (p3.x - x) * 0.35, y: p3.y - h },
+        p3: p3,
+      });
+    }
+    return segs;
+  }
+
+  function buildHRope(x0, y, x1, rng, waveAmp, phaseIn, wobbleIn) {
+    const wavePeriod = 180;
+    const phase  = phaseIn  != null ? phaseIn  : rng() * Math.PI * 2;
+    const wobble = wobbleIn != null ? wobbleIn : 0.6 + rng() * 0.8;
+    const anchors = [];
+    for (let x = x0; x <= x1 + wavePeriod; x += wavePeriod) {
+      const t = (x - x0) / wavePeriod;
+      const lateral = Math.sin(phase + t * Math.PI * wobble) * waveAmp
+                    + jitter(rng, waveAmp * 0.15);
+      anchors.push({ x: x, y: y + lateral });
+    }
+    const segs = [];
+    for (let i = 0; i < anchors.length - 1; i++) {
+      const p0 = anchors[i], p3 = anchors[i + 1];
+      const h = (p3.x - p0.x) * 0.5;
+      segs.push({
+        p0: p0,
+        p1: { x: p0.x + h, y: p0.y + (p0.y - y) * 0.35 },
+        p2: { x: p3.x - h, y: p3.y + (p3.y - y) * 0.35 },
+        p3: p3,
+      });
+    }
+    return segs;
+  }
+
+  // ==========================================================================
+  // OVER / UNDER WEAVING — at each rope crossing, decide which passes over
+  // based on the parity of (rail index + cross index). Classic basketweave.
+  // ==========================================================================
+  function classify(cx, cy, ropeIdx, isH, vRopes, hRopes, thresh) {
+    if (isH) {
+      for (let i = 0; i < vRopes.length; i++) {
+        if (Math.abs(cx - vRopes[i].baseX) < thresh) {
+          return (vRopes[i].idx + ropeIdx) % 2 === 0 ? 'over' : 'under';
+        }
+      }
+    } else {
+      for (let i = 0; i < hRopes.length; i++) {
+        if (Math.abs(cy - hRopes[i].baseY) < thresh) {
+          return (ropeIdx + hRopes[i].idx) % 2 === 0 ? 'under' : 'over';
+        }
+      }
+    }
+    return 'over';
+  }
+
+  // ==========================================================================
+  // SVG RENDERING — plain DOM. Two glyphs: olive (striped football shape)
+  // and knot (circle with a tiny highlight arc).
+  // ==========================================================================
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  function svgEl(tag, attrs) {
+    const el = document.createElementNS(SVG_NS, tag);
+    if (attrs) {
+      for (const k in attrs) {
+        if (attrs[k] != null) el.setAttribute(k, attrs[k]);
+      }
+    }
+    return el;
+  }
+
+  function olivePath(L, w) {
+    const hx = L / 2;
+    return (
+      'M ' + (-hx) + ' 0 ' +
+      'C ' + (-hx * 0.52) + ' ' + (-w * 1.02) + ' ' + (hx * 0.52) + ' ' + (-w * 1.02) + ' ' + hx + ' 0 ' +
+      'C ' + (hx * 0.52) + ' ' + (w * 1.02)  + ' ' + (-hx * 0.52) + ' ' + (w * 1.02)  + ' ' + (-hx) + ' 0 Z'
+    );
+  }
+
+  let oliveUid = 0;
+  function renderOlive(g, flavor, L, strokeW, stroke, bg) {
+    const w       = flavor.w;
+    const hx      = L / 2;
+    const stripes = flavor.stripes;
+    const ang     = (flavor.stripeAngle * flavor.direction * Math.PI) / 180;
+    const step    = L / stripes;
+    const chord   = w * 4.2;
+    const bow     = flavor.bow;
+    const clipId  = 'oclip-' + (++oliveUid);
+
+    // ClipPath keeps the stripes inside the olive body.
+    const defs = svgEl('defs');
+    const clip = svgEl('clipPath', { id: clipId });
+    clip.appendChild(svgEl('path', { d: olivePath(L, w) }));
+    defs.appendChild(clip);
+    g.appendChild(defs);
+
+    // Body: filled with the page ground so underlying ropes/text are hidden.
+    g.appendChild(svgEl('path', {
+      d: olivePath(L, w),
+      fill: bg,
+      stroke: stroke,
+      'stroke-width': strokeW,
+      'stroke-linejoin': 'round',
+      'stroke-linecap': 'round',
+    }));
+
+    // Stripes — quadratic beziers bowing in one consistent direction per olive.
+    const stripeGroup = svgEl('g', { 'clip-path': 'url(#' + clipId + ')' });
+    for (let i = 0; i < stripes; i++) {
+      const cx      = -hx + (i + 0.5) * step;
+      const xFrac   = Math.abs(cx) / hx;
+      const localW  = Math.pow(1 - Math.pow(xFrac, 1.6), 0.85);
+      const angL    = ang * (1 + 0.25 * localW);
+      const dx      = Math.sin(angL) * (chord / 2);
+      const dy      = Math.cos(angL) * (chord / 2);
+      const x1 = cx - dx, y1 = -dy;
+      const x2 = cx + dx, y2 =  dy;
+      const mx = (x1 + x2) / 2;
+      const my = (y1 + y2) / 2;
+      const bowAmt = bow * w * localW;
+      stripeGroup.appendChild(svgEl('path', {
+        d: 'M ' + x1.toFixed(2) + ' ' + y1.toFixed(2) +
+           ' Q ' + mx.toFixed(2) + ' ' + (my - bowAmt).toFixed(2) +
+           ' ' + x2.toFixed(2) + ' ' + y2.toFixed(2),
+        fill: 'none',
+        stroke: stroke,
+        'stroke-width': strokeW * 0.75,
+        'stroke-linecap': 'butt',
+      }));
+    }
+    g.appendChild(stripeGroup);
+  }
+
+  function renderKnot(g, r, strokeW, stroke, bg) {
+    g.appendChild(svgEl('circle', {
+      r: r, fill: bg, stroke: stroke, 'stroke-width': strokeW,
+    }));
+    g.appendChild(svgEl('path', {
+      d: 'M ' + (-r * 0.65) + ' ' + (-r * 0.15) +
+         ' A ' + (r * 0.75) + ' ' + (r * 0.75) + ' 0 0 1 ' +
+         (r * 0.15) + ' ' + (-r * 0.65),
+      fill: 'none',
+      stroke: stroke,
+      'stroke-width': strokeW * 0.55,
+      'stroke-linecap': 'round',
+      opacity: 0.8,
+    }));
+  }
+
+  // ==========================================================================
+  // FABRIC BUILDER — assembles vertical rails + horizontal cross-ropes into
+  // a single SVG with proper over/under z-ordering.
+  // ==========================================================================
+  function buildFabric(width, height, horizontalYs, pairIds, leftRails, rightRails) {
+    const rng = makeRng(CFG.seed);
+    const verticals = leftRails.concat(rightRails);
+    const pickIdx = function (arr, i) { return arr[i % arr.length]; };
+    const scaleFlavor = function (f) {
+      return Object.assign({}, f, {
+        L: Math.max(8, Math.round(f.L * CFG.flavorScale)),
+        w: Math.max(4, Math.round(f.w * CFG.flavorScale)),
+      });
+    };
+
+    // --- Vertical rails ---
+    const vRopes = verticals.map(function (x, i) {
+      const flavor = scaleFlavor(pickFlavor(rng, i % 2 === 0 ? 1 : -1, pickIdx(CFG.railFlavors, i)));
+      const path   = buildVRope(x, -CFG.extend, height + CFG.extend, rng, CFG.railWave);
+      const offset = rng() * flavor.L * 0.6;
+      const points = layoutRope(path, flavor.L, { x: x, y: -CFG.extend + offset });
+      return { baseX: x, idx: i, flavor: flavor, points: points };
+    });
+
+    // --- Shared phase/wobble per pair-id so paired horizontals render parallel.
+    const pairSeeds = {};
+    for (let i = 0; i < pairIds.length; i++) {
+      const id = pairIds[i];
+      if (id != null && pairSeeds[id] == null) {
+        pairSeeds[id] = { phase: rng() * Math.PI * 2, wobble: 0.6 + rng() * 0.8 };
+      }
+    }
+
+    // --- Horizontal cross-ropes ---
+    const hRopes = horizontalYs.map(function (y, j) {
+      const flavor = scaleFlavor(pickFlavor(rng, j % 2 === 0 ? -1 : 1, pickIdx(CFG.crossFlavors, j)));
+      const seed   = pairIds[j] != null ? pairSeeds[pairIds[j]] : null;
+      const path   = buildHRope(-CFG.extend, y, width + CFG.extend, rng, CFG.crossWave,
+                                seed ? seed.phase : null, seed ? seed.wobble : null);
+      const offset = rng() * flavor.L * 0.6;
+      const points = layoutRope(path, flavor.L, { x: -CFG.extend + offset, y: y });
+      return { baseY: y, idx: j, flavor: flavor, points: points };
+    });
+
+    // --- Collect drawable items (olives + knots), each tagged over/under ---
+    const items = [];
+
+    function emitRope(rope, isH) {
+      const flavor = rope.flavor;
+      const points = rope.points;
+      const idx    = rope.idx;
+      const thresh = Math.max(flavor.w * 1.4, flavor.L * 0.42);
+
+      // Olives sit between consecutive knot-points.
+      for (let i = 0; i < points.length - 1; i++) {
+        const a = points[i], b = points[i + 1];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const L   = Math.sqrt(dx*dx + dy*dy);
+        const ang = Math.atan2(dy, dx) * 180 / Math.PI;
+        const cx  = (a.x + b.x) / 2;
+        const cy  = (a.y + b.y) / 2;
+        const zTag = classify(cx, cy, idx, isH, vRopes, hRopes, thresh);
+        items.push({ kind: 'olive', zTag: zTag, cx: cx, cy: cy, ang: ang, L: L, flavor: flavor });
+      }
+      // Knots sit at interior points (first/last are open rope ends).
+      const r = Math.max(3, flavor.L * flavor.knotRatio);
+      for (let i = 1; i < points.length - 1; i++) {
+        const p = points[i];
+        const zTag = classify(p.x, p.y, idx, isH, vRopes, hRopes, thresh);
+        items.push({ kind: 'knot', zTag: zTag, cx: p.x, cy: p.y, r: r });
+      }
+    }
+    vRopes.forEach(function (r) { emitRope(r, false); });
+    hRopes.forEach(function (r) { emitRope(r, true);  });
+
+    // Sort UNDER items first, OVER items last. Within each tier, olives paint
+    // before knots so knots sit on top of the seams.
+    function rank(it) {
+      const zr = it.zTag === 'under' ? 0 : it.zTag === 'over' ? 2 : 4;
+      const tr = it.kind === 'olive' ? 0 : 1;
+      return zr + tr;
+    }
+    items.sort(function (a, b) { return rank(a) - rank(b); });
+
+    // --- Assemble SVG ---
+    const svg = svgEl('svg', {
+      viewBox: '0 0 ' + width + ' ' + height,
+      width:  width,
+      height: height,
+      preserveAspectRatio: 'none',
+    });
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      const transform = it.kind === 'olive'
+        ? 'translate(' + it.cx + ' ' + it.cy + ') rotate(' + it.ang + ')'
+        : 'translate(' + it.cx + ' ' + it.cy + ')';
+      const g = svgEl('g', { transform: transform });
+      if (it.kind === 'olive') {
+        renderOlive(g, it.flavor, it.L, CFG.stroke, CFG.chalk, CFG.ink);
+      } else {
+        renderKnot(g, it.r, CFG.stroke, CFG.chalk, CFG.ink);
+      }
+      svg.appendChild(g);
+    }
+    return svg;
+  }
+
+  // ==========================================================================
+  // LAYOUT — measure where ropes should sit, then render the fabric.
+  // ==========================================================================
+
+  // Vertical rail positions, mirrored across the page.
+  function computeRails(width) {
+    // Mobile: one rail per side, nestled in the expanded outer padding.
+    if (width < CFG.mobileBP) {
+      return { left: [28], right: [width - 28] };
+    }
+    const inner = [52, 100];
+    const extras = [];
+    if (width >= 960)  extras.push(168);
+    if (width >= 1200) extras.push(236);
+    if (width >= 1500) extras.push(308);
+    const left = inner.concat(extras);
+    const right = left.slice().reverse().map(function (x) { return width - x; });
+    return { left: left, right: right };
+  }
+
+  // Scan paragraphs tagged with data-rope-after and compute the y-centers
+  // where ropes should sit. Returns aligned arrays of ys + pair-ids (same
+  // pair-id on the two ropes of a "double" so they curve in parallel).
+  function measureRopeYs(pageEl) {
+    const pageTop = pageEl.getBoundingClientRect().top;
+    const paras   = pageEl.querySelectorAll('.essay > p');
+    const ys = [];
+    const pairIds = [];
+    let nextPairId = 0;
+
+    for (let i = 0; i < paras.length; i++) {
+      const kind = paras[i].getAttribute('data-rope-after');
+      if (!kind) continue;
+      const a = paras[i].getBoundingClientRect();
+      const b = paras[i + 1] ? paras[i + 1].getBoundingClientRect() : null;
+      const center = b
+        ? (a.bottom + b.top) / 2 - pageTop
+        :  a.bottom - pageTop + 40;
+      if (kind === 'double') {
+        const pid = nextPairId++;
+        ys.push(center - CFG.doubleGap / 2);
+        ys.push(center + CFG.doubleGap / 2);
+        pairIds.push(pid, pid);
+      } else {
+        ys.push(center);
+        pairIds.push(null);
+      }
+    }
+    return { ys: ys, pairIds: pairIds };
+  }
+
+  function renderFabric() {
+    const pageEl   = document.getElementById('page');
+    const fabricEl = document.getElementById('fabric');
+    if (!pageEl || !fabricEl) return;
+    const width  = pageEl.getBoundingClientRect().width;
+    const height = pageEl.scrollHeight;
+    const measured = measureRopeYs(pageEl);
+    const rails    = computeRails(width);
+    fabricEl.textContent = '';  // clear any previous render
+    fabricEl.appendChild(
+      buildFabric(width, height, measured.ys, measured.pairIds, rails.left, rails.right)
+    );
+  }
+
+  // ==========================================================================
+  // FOOTNOTE POPOVERS
+  // ==========================================================================
+  function wireFootnotes() {
+    const markers = document.querySelectorAll('.fn-marker');
+    let activeMarker = null;
+    let popEl = null;
+    let hideTimer = null;
+
+    function positionPopover(marker) {
+      if (!popEl) return;
+      const r  = marker.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const popW = Math.min(340, vw - 32);
+      const popH = popEl.offsetHeight;
+      const showBelow = (r.top - popH - 18 < 12);
+      let x = r.left + r.width / 2;
+      if (x - popW / 2 < 16)         x = 16 + popW / 2;
+      else if (x + popW / 2 > vw - 16) x = vw - 16 - popW / 2;
+      const y = showBelow ? r.bottom + 10 : r.top - 10;
+      popEl.style.left = x + 'px';
+      popEl.style.top  = y + 'px';
+      popEl.style.transform = showBelow
+        ? 'translate(-50%, 0)'
+        : 'translate(-50%, -100%)';
+    }
+
+    function hidePopover() {
+      if (popEl) { popEl.remove(); popEl = null; }
+      activeMarker = null;
+    }
+    function scheduleHide() {
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(function () {
+        if (!popEl) return;
+        // Cancel the hide if the pointer is over either the marker or the
+        // popover itself — that's one contiguous hover surface.
+        if (popEl.matches(':hover')) return;
+        if (activeMarker && activeMarker.matches(':hover')) return;
+        hidePopover();
+      }, 80);
+    }
+    function cancelHide() { clearTimeout(hideTimer); }
+
+    function showPopover(marker) {
+      cancelHide();
+      if (activeMarker === marker && popEl) return;
+      hidePopover();
+      const n      = marker.getAttribute('data-n');
+      const bodyEl = marker.querySelector('.fn-body');
+      const body   = bodyEl ? bodyEl.innerHTML : '';
+      popEl = document.createElement('div');
+      popEl.className = 'fn-pop';
+      popEl.setAttribute('role', 'tooltip');
+      popEl.innerHTML = '<span class="fn-pop-num">[' + n + ']</span>' + body;
+      popEl.addEventListener('mouseenter', cancelHide);
+      popEl.addEventListener('mouseleave', scheduleHide);
+      document.body.appendChild(popEl);
+      activeMarker = marker;
+      positionPopover(marker);
+    }
+
+    markers.forEach(function (m) {
+      m.addEventListener('mouseenter', function () { showPopover(m); });
+      m.addEventListener('mouseleave', scheduleHide);
+      m.addEventListener('focus',      function () { showPopover(m); });
+      m.addEventListener('blur',       hidePopover);
+    });
+
+    // Reposition on scroll/resize while a popover is open.
+    window.addEventListener('scroll', function () {
+      if (activeMarker) positionPopover(activeMarker);
+    }, true);
+    window.addEventListener('resize', function () {
+      if (activeMarker) positionPopover(activeMarker);
+    });
+  }
+
+  // ==========================================================================
+  // INIT
+  // ==========================================================================
+  function init() {
+    renderFabric();
+    wireFootnotes();
+
+    // Re-render the fabric when the viewport changes size (debounced).
+    let resizeTimer;
+    window.addEventListener('resize', function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(renderFabric, 150);
+    });
+
+    // Web fonts land asynchronously and shift paragraph positions. Once they
+    // load, re-measure so rope Ys sit in the right gutters.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(renderFabric);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
