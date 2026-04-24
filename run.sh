@@ -4,14 +4,14 @@ set -e
 # Find an open port starting from 8000
 find_open_port() {
   local port=8000
-  while netstat -tln 2>/dev/null | grep -q ":$port "; do
+  while lsof -iTCP:$port -sTCP:LISTEN -n -P >/dev/null 2>&1; do
     ((port++))
   done
   echo $port
 }
 
 PORT=$(find_open_port)
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/public"
 
 echo "Starting live-reload server on port $PORT..."
 echo "Open http://localhost:$PORT in your browser"
