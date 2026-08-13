@@ -1,9 +1,34 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
   <title>Pythia Software</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A View from Delphi, an essay about building software that translates between AI capabilities and human goals.">
+  <meta name="theme-color" content="#0A2540">
+
+  <script>
+    // Apply saved or explicitly requested display preferences before paint.
+    (function () {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const requestedReader = params.get('reader');
+        const savedReader = window.localStorage.getItem('pythia-reader-view');
+        const requestedTheme = params.get('theme');
+        const savedTheme = window.localStorage.getItem('pythia-color-theme');
+
+        if (requestedReader === '1' || (requestedReader !== '0' && savedReader === 'true')) {
+          document.documentElement.classList.add('reader-view');
+        }
+        if (requestedTheme === 'light' || (requestedTheme !== 'dark' && savedTheme === 'light')) {
+          document.documentElement.classList.add('light-theme');
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#F7F3E8');
+        }
+      } catch (error) {
+        // Storage can be unavailable in strict privacy modes; the controls still work.
+      }
+    })();
+  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,9 +43,23 @@
       --ink-deep:    #061A30;   /* popover background                         */
       --chalk:       #F2EEE3;   /* cream — primary ink                        */
       --chalk-dim:   rgba(242,238,227,0.72);
-      --chalk-faint: rgba(242,238,227,0.38);
+      --chalk-faint: rgba(242,238,227,0.65);
       --chalk-ghost: rgba(242,238,227,0.14);
       --accent:      #C8A15B;   /* brass — reserved for emphasis              */
+      --grid-color:  #F2EEE3;
+      color-scheme: dark;
+    }
+
+    html.light-theme {
+      --ink:         #F7F3E8;
+      --ink-deep:    #FFFDF8;
+      --chalk:       #102A43;
+      --chalk-dim:   rgba(16,42,67,0.78);
+      --chalk-faint: rgba(16,42,67,0.68);
+      --chalk-ghost: rgba(16,42,67,0.16);
+      --accent:      #76540C;
+      --grid-color:  #102A43;
+      color-scheme: light;
     }
 
     /* ========================================================================
@@ -33,6 +72,41 @@
       background: var(--ink);
       color: var(--chalk);
       font-family: "Cormorant Garamond", serif;
+    }
+    html { scroll-padding-top: 24px; }
+
+    .skip-link {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 10000;
+      padding: 10px 14px;
+      background: var(--chalk);
+      color: var(--ink);
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 13px;
+      font-weight: 500;
+      transform: translateY(-160%);
+      transition: transform 120ms ease-out;
+    }
+    .skip-link:focus { transform: translateY(0); }
+
+    :focus-visible {
+      outline: 3px solid var(--chalk);
+      outline-offset: 4px;
+      border-radius: 2px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     /* Fixed-width, centered column for every block in the document flow. */
@@ -58,6 +132,7 @@
       height: 100%;
       pointer-events: none;
       z-index: 0;
+      color: var(--grid-color);
     }
 
     /* ========================================================================
@@ -68,7 +143,14 @@
       padding: 52px 140px 0;
       display: flex;
       justify-content: center;
-      z-index: 1;
+      z-index: 3;
+    }
+    .masthead-inner {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
     }
     .masthead-row {
       display: flex;
@@ -86,6 +168,29 @@
       width: 4px; height: 4px; border-radius: 50%;
       background: var(--chalk-faint);
     }
+    .view-controls {
+      position: absolute;
+      right: 28px;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .view-control {
+      appearance: none;
+      border: 1px solid var(--chalk-faint);
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: var(--ink-deep);
+      color: var(--chalk);
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .view-control:hover { border-color: var(--chalk); }
 
     /* ========================================================================
        TITLE
@@ -156,10 +261,27 @@
     /* Margin rules for rope boundaries.
        A paragraph that ENDS a rope boundary gets bigger margin-bottom;
        the NEXT paragraph gets the matching margin-top via adjacent-sibling. */
-    .essay p[data-rope-after="single"] { margin-bottom: 100px; }
-    .essay p[data-rope-after="double"] { margin-bottom: 180px; }
-    .essay p[data-rope-after="single"] + p { margin-top: 100px; }
-    .essay p[data-rope-after="double"] + p { margin-top: 180px; }
+    .essay [data-rope-after="single"] { margin-bottom: 100px; }
+    .essay [data-rope-after="double"] { margin-bottom: 180px; }
+    .essay [data-rope-after="single"] + * { margin-top: 100px; }
+    .essay [data-rope-after="double"] + * { margin-top: 180px; }
+
+    .projects {
+      margin: 18px 0 0;
+      padding-left: 1.35em;
+    }
+    .projects li {
+      margin-top: 18px;
+      padding-left: 0.35em;
+      font-size: 19.5px;
+      line-height: 1.58;
+    }
+    .projects li::marker {
+      color: var(--accent);
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 0.65em;
+    }
+    .projects p { margin: 0; }
 
     /* Mobile: widen the essay's horizontal padding so the single vertical
        rope rail on each side has room to sit in the margin without
@@ -167,6 +289,8 @@
     @media (max-width: 720px) {
       .essay { padding: 0 56px 48px; }
       .masthead { padding: 52px 24px 0; }
+      .masthead-inner { flex-direction: column; }
+      .view-controls { position: static; }
       footer.footer {
         flex-direction: column;
         align-items: center;
@@ -174,16 +298,14 @@
         gap: 12px;
       }
     }
-
     a {
       color: var(--accent);
     }
 
     /* ========================================================================
        FOOTNOTE MARKERS + POPOVERS
-       A marker is <sup class="fn-marker">[n]<span class="fn-body" hidden>...</span></sup>
-       The body lives inline next to its number so edits are local.
-       The popover is injected into <body> by JS so it floats above the ropes.
+       A marker is a semantic link to its note in the endnotes section.
+       The popover is a progressive enhancement injected into <body> by JS.
        ======================================================================== */
     .fn-marker {
       position: relative;
@@ -197,8 +319,7 @@
       letter-spacing: 0.02em;
       vertical-align: super;
       line-height: 1;
-      cursor: help;
-      outline: none;
+      cursor: pointer;
       text-decoration: none;
     }
     .fn-marker:hover,
@@ -250,6 +371,45 @@
     .fn-pop a:hover { text-decoration-color: var(--accent); }
 
     /* ========================================================================
+       NOTES — semantic source of truth for footnotes and popover content.
+       ======================================================================== */
+    .footnotes {
+      position: relative;
+      z-index: 1;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 48px 24px 0;
+      border-top: 1px solid var(--chalk-ghost);
+    }
+    .footnotes h2 {
+      margin: 0 0 22px;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .footnotes ol { margin: 0; padding-left: 2.25em; }
+    .footnotes li {
+      margin-top: 14px;
+      padding-left: 0.35em;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--chalk-dim);
+    }
+    .footnotes li::marker {
+      color: var(--accent);
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 10px;
+    }
+    .footnotes a { overflow-wrap: anywhere; }
+    .fn-back {
+      margin-left: 0.35em;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 0.75em;
+    }
+
+    /* ========================================================================
        FOOTER
        ======================================================================== */
     .footer {
@@ -283,10 +443,120 @@
       overflow: visible;
     }
     .fabric svg { display: block; overflow: visible; }
+
+    /* ========================================================================
+       READER VIEW — a calm, high-contrast, system-font presentation.
+       The URL may also opt in with ?reader=1 for a shareable reader link.
+       ======================================================================== */
+    html.reader-view .page { overflow: visible; padding-bottom: 56px; }
+    html.reader-view .grid-bg,
+    html.reader-view .fabric,
+    html.reader-view .masthead-dot { display: none; }
+    html.reader-view .masthead {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 24px 24px 0;
+    }
+    html.reader-view .masthead-inner { justify-content: space-between; }
+    html.reader-view .masthead-row {
+      justify-content: flex-start;
+      color: var(--chalk-dim);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+    }
+    html.reader-view .view-controls { position: static; }
+    html.reader-view .view-control {
+      flex: 0 0 auto;
+      background: var(--chalk);
+      color: var(--ink);
+      border-color: var(--chalk);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    }
+    html.reader-view .title-block {
+      max-width: 760px;
+      margin: 52px auto 44px;
+      text-align: left;
+    }
+    html.reader-view .title-block h1 {
+      font-family: ui-serif, Georgia, serif;
+      font-style: normal;
+      font-weight: 700;
+      font-size: clamp(38px, 7vw, 58px);
+      line-height: 1.1;
+    }
+    html.reader-view .title-block .subtitle {
+      margin-top: 12px;
+      color: var(--chalk-dim);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-style: normal;
+      font-size: 16px;
+    }
+    html.reader-view .essay,
+    html.reader-view .footnotes,
+    html.reader-view .footer { max-width: 760px; padding-right: 24px; padding-left: 24px; }
+    html.reader-view .essay p,
+    html.reader-view .projects li {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-style: normal;
+      font-weight: 400;
+      font-size: 18px;
+      line-height: 1.72;
+      letter-spacing: 0;
+    }
+    html.reader-view .essay p[data-emphasis] {
+      padding-left: 18px;
+      border-left: 4px solid var(--accent);
+      color: var(--chalk);
+      font-size: 19px;
+      font-weight: 600;
+    }
+    html.reader-view .essay [data-rope-after] { margin-bottom: 28px; }
+    html.reader-view .essay [data-rope-after] + * { margin-top: 28px; }
+    html.reader-view .footnotes {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      border-top-color: var(--chalk-ghost);
+    }
+    html.reader-view .footnotes li { color: var(--chalk-dim); }
+    html.reader-view .footer { margin-top: 36px; }
+
+    @media print {
+      html, html.light-theme {
+        --ink: #FFFFFF;
+        --ink-deep: #FFFFFF;
+        --chalk: #000000;
+        --chalk-dim: #222222;
+        --chalk-faint: #333333;
+        --accent: #000000;
+        color-scheme: light;
+      }
+      .grid-bg, .fabric, .view-controls, .skip-link { display: none !important; }
+      .page { overflow: visible; padding-bottom: 0; }
+      .essay [data-rope-after], .essay [data-rope-after] + * {
+        margin-top: 18px;
+        margin-bottom: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media (forced-colors: active) {
+      .grid-bg, .fabric { display: none; }
+      .view-control { border: 1px solid ButtonText; }
+      :focus-visible { outline-color: Highlight; }
+    }
   </style>
 </head>
 
 <body>
+<a class="skip-link" href="#essay">Skip to essay</a>
 <main class="page" id="page">
 
   <!-- Background graph-paper grid: three line-weight tiers in a 4-step cycle. -->
@@ -294,16 +564,16 @@
     <defs>
       <pattern id="grid-pattern" width="192" height="192" patternUnits="userSpaceOnUse">
         <!-- semi-semi-major (weakest): offsets 1 and 3 of the 4-step cycle -->
-        <path d="M 48 0 L 48 192"   stroke="#F2EEE3" stroke-opacity="0.081" stroke-width="0.5"/>
-        <path d="M 144 0 L 144 192" stroke="#F2EEE3" stroke-opacity="0.081" stroke-width="0.5"/>
-        <path d="M 0 48 L 192 48"   stroke="#F2EEE3" stroke-opacity="0.081" stroke-width="0.5"/>
-        <path d="M 0 144 L 192 144" stroke="#F2EEE3" stroke-opacity="0.081" stroke-width="0.5"/>
+        <path d="M 48 0 L 48 192"   stroke="currentColor" stroke-opacity="0.081" stroke-width="0.5"/>
+        <path d="M 144 0 L 144 192" stroke="currentColor" stroke-opacity="0.081" stroke-width="0.5"/>
+        <path d="M 0 48 L 192 48"   stroke="currentColor" stroke-opacity="0.081" stroke-width="0.5"/>
+        <path d="M 0 144 L 192 144" stroke="currentColor" stroke-opacity="0.081" stroke-width="0.5"/>
         <!-- semi-major (middle): offset 2 -->
-        <path d="M 96 0 L 96 192"   stroke="#F2EEE3" stroke-opacity="0.189" stroke-width="0.6"/>
-        <path d="M 0 96 L 192 96"   stroke="#F2EEE3" stroke-opacity="0.189" stroke-width="0.6"/>
+        <path d="M 96 0 L 96 192"   stroke="currentColor" stroke-opacity="0.189" stroke-width="0.6"/>
+        <path d="M 0 96 L 192 96"   stroke="currentColor" stroke-opacity="0.189" stroke-width="0.6"/>
         <!-- major (brightest): offset 0 -->
-        <path d="M 0 0 L 0 192"     stroke="#F2EEE3" stroke-opacity="0.342" stroke-width="0.75"/>
-        <path d="M 0 0 L 192 0"     stroke="#F2EEE3" stroke-opacity="0.342" stroke-width="0.75"/>
+        <path d="M 0 0 L 0 192"     stroke="currentColor" stroke-opacity="0.342" stroke-width="0.75"/>
+        <path d="M 0 0 L 192 0"     stroke="currentColor" stroke-opacity="0.342" stroke-width="0.75"/>
       </pattern>
     </defs>
     <rect width="100%" height="100%" fill="url(#grid-pattern)" />
@@ -311,49 +581,59 @@
 
   <!-- Masthead ribbon -->
   <header class="masthead">
-    <div class="masthead-row">
-      <span>Pythia Software LLC</span>
-      <span class="masthead-dot"></span>
-      <span>Est. MMXXVI</span>
-      <span class="masthead-dot"></span>
-      <span>Colorado</span>
+    <div class="masthead-inner">
+      <div class="masthead-row">
+        <span>Pythia Software LLC</span>
+        <span class="masthead-dot" aria-hidden="true"></span>
+        <span aria-hidden="true">Est. MMXXVI</span>
+        <span class="sr-only">Established 2026</span>
+        <span class="masthead-dot" aria-hidden="true"></span>
+        <span>Colorado</span>
+      </div>
+      <div class="view-controls">
+        <button class="reader-toggle view-control" id="reader-toggle" type="button" aria-pressed="false" hidden>
+          Reader view
+        </button>
+        <button class="theme-toggle view-control" id="theme-toggle" type="button" hidden>
+          Light mode
+        </button>
+      </div>
+      <span class="sr-only" id="reader-status" aria-live="polite"></span>
+      <span class="sr-only" id="theme-status" aria-live="polite"></span>
     </div>
   </header>
 
+  <article aria-labelledby="essay-title">
+
   <!-- Title -->
   <div class="title-block">
-    <h1>A View from Delphi</h1>
-    <div class="subtitle">by <a href="https://grady.dev">Grady Berry Ward</a></div>
+    <h1 id="essay-title">A View from Delphi</h1>
+    <div class="subtitle">by <a href="https://grady.dev" rel="author">Grady Berry Ward</a><a class="fn-marker" id="fnref-1" href="#fn-1" role="doc-noteref" data-n="1" aria-label="Footnote 1">[1]</a></div>
   </div>
 
   <!-- ==========================================================================
        ESSAY BODY
        Each paragraph carries tags describing its visual treatment and whether
-       a rope sits after it. Footnote markers are inline; their body is a
-       hidden <span class="fn-body"> that the popover script reads.
+       a rope sits after it. Footnote references link to the notes below.
        ========================================================================== -->
-  <article class="essay" id="essay">
+  <div class="essay" id="essay" tabindex="-1">
 
     <p data-domain="software">
-      In information theory, there is a concept called an oracle<sup class="fn-marker" data-n="1" tabindex="0">[1]
-        <span class="fn-body" hidden>Not to be confused with Larry Ellison's law firm posing as a software company.</span></sup>
-       - a system that can reliably and correctly answer a question of a given kind<sup class="fn-marker" data-n="2" tabindex="0">[2]
-        <span class="fn-body" hidden><a href="https://en.wikipedia.org/wiki/Oracle_machine" target="_blank" rel="noreferrer">en.wikipedia.org/wiki/Oracle_machine</a></span></sup>.
-        When the term is used in software, it is misappropriated to describe a machine whose behavior is 
-        authoritative<sup class="fn-marker" data-n="3" tabindex="0">[3]<span class="fn-body" hidden>
-          For example, during a migration from System A (the original, trusted system) to System B (the faster, modern replacement), 
-          engineers will treat System A like an oracle, and try to cajole or brute-force system B into lockstep.</span></sup>.
+      In information theory, there is a concept called an oracle<a class="fn-marker" id="fnref-2" href="#fn-2" role="doc-noteref" data-n="2" aria-label="Footnote 2">[2]</a>
+       - a system that can reliably and correctly answer a question of a given kind<a class="fn-marker" id="fnref-3" href="#fn-3" role="doc-noteref" data-n="3" aria-label="Footnote 3">[3]</a>.
+        When the term is used in software, it is misappropriated to describe a machine whose behavior is
+        authoritative<a class="fn-marker" id="fnref-4" href="#fn-4" role="doc-noteref" data-n="4" aria-label="Footnote 4">[4]</a>.
     </p>
 
     <p data-domain="software" data-rope-after="single">Thus when we speak of an oracle in the world of software we're often really thinking about very large sets of pairs - inputs and outputs. ML, AI, reverse engineering, cryptography - all of these fields interrogate, predict, and emulate system behavior through analyzing pairs of stimulus and response.</p>
 
-    <p data-domain="antiquity" data-rope-after="single">The Oracle from antiquity, the one at the temple of Apollo at Delphi, profoundly changed the course of Greek history. Many of her prophecies not just foretold the fates of city states and empires, but influenced the choices that developed and doomed them. These include Athens' admonishment to "trust in wooden walls", Phillip II's hint toward "silver spears" to conquer the world, and Croesus' "destruction of a mighty empire if you attack" (it turned out to be his own)<sup class="fn-marker" data-n="4" tabindex="0">[4]<span class="fn-body" hidden><a href="https://en.wikipedia.org/wiki/List_of_oracular_statements_from_Delphi" target="_blank" rel="noreferrer">en.wikipedia.org/wiki/List_of_oracular_statements_from_Delphi</a></span></sup><sup class="fn-marker" data-n="5" tabindex="0">[5]<span class="fn-body" hidden>Outside of conquest, the Delphic Oracle also counseled Cicero to find his voice, set in motion Nero's fate, and inspired the Spartan code of morality.</span></sup>. When believed, prophecy changes the course of events through its utterance.</p>
+    <p data-domain="antiquity" data-rope-after="single">The Oracle from antiquity, the one at the temple of Apollo at Delphi, profoundly changed the course of Greek history. Many of her prophecies not just foretold the fates of city states and empires, but influenced the choices that developed and doomed them. These include Athens' admonishment to "trust in wooden walls", Phillip II's hint toward "silver spears" to conquer the world, and Croesus' "destruction of a mighty empire if you attack" (it turned out to be his own)<a class="fn-marker" id="fnref-5" href="#fn-5" role="doc-noteref" data-n="5" aria-label="Footnote 5">[5]</a><a class="fn-marker" id="fnref-6" href="#fn-6" role="doc-noteref" data-n="6" aria-label="Footnote 6">[6]</a>. When believed, prophecy changes the course of events through its utterance.</p>
 
-    <p data-domain="software" data-rope-after="single">Through a plethora of inputs and outputs, I've gained both appreciation for and skepticism of AI<sup class="fn-marker" data-n="6" tabindex="0">[6]<span class="fn-body" hidden>Like most other Software Engineers, I have found my work with AI transfixing - in a very short time period, everything is suddenly possible, malleable, concerning, and surprising.</span></sup>. Some capabilities - reasoning, discovery, creativity - are developing quickly and already proving useful. Some flaws - accuracy, judgement, and empathy to name a few - seem like they are stuck, unlikely to be improved by a bigger training run. Many of the things that our minds are capable of are cultivated through experience, internal state, relationship, and the divine.</p>
+    <p data-domain="software" data-rope-after="single">Through a plethora of inputs and outputs, I've gained both appreciation for and skepticism of AI<a class="fn-marker" id="fnref-7" href="#fn-7" role="doc-noteref" data-n="7" aria-label="Footnote 7">[7]</a>. Some capabilities - reasoning, discovery, creativity - are developing quickly and already proving useful. Some flaws - accuracy, judgement, and empathy to name a few - seem like they are stuck, unlikely to be improved by a bigger training run. Many of the things that our minds are capable of are cultivated through experience, internal state, relationship, and the divine.</p>
 
-    <p data-domain="antiquity">The Oracle at Delphi had a title - that of Pythia (a role assumed by many individuals over time, like the Pope)<sup class="fn-marker" data-n="7" tabindex="0">[7]<span class="fn-body" hidden><a href="https://en.wikipedia.org/wiki/Pythia" target="_blank" rel="noreferrer">en.wikipedia.org/wiki/Pythia</a></span></sup>. Pythia - the high Priestess - was the woman charged with dispensing Apollo's wisdom. While accounts of how she worked are scarce and conflicting, this may have involved the inhalation of psychedelic fumes from the earth, the transcription and interpretation of other priestesses and priests, and a variety of cleansing rituals to prepare both the Oracle and supplicant for the truth.</p>
+    <p data-domain="antiquity">The Oracle at Delphi had a title - that of Pythia (a role assumed by many individuals over time, like the Pope)<a class="fn-marker" id="fnref-8" href="#fn-8" role="doc-noteref" data-n="8" aria-label="Footnote 8">[8]</a>. Pythia - the high Priestess - was the woman charged with dispensing Apollo's wisdom. While accounts of how she worked are scarce and conflicting, this may have involved the inhalation of psychedelic fumes from the earth, the transcription and interpretation of other priestesses and priests, and a variety of cleansing rituals to prepare both the Oracle and supplicant for the truth.</p>
 
-    <p data-domain="antiquity" data-rope-after="single">Pythia served as the conduit for something - whether it was fumes, the informational networks of the well informed clergy<sup class="fn-marker" data-n="8" tabindex="0">[8]<span class="fn-body" hidden>It is commonly thought that Pythia was aided by the large staff of the temple of Apollo, whose foreign religious emissaries made the temple of Apollo a hub of information about the Greek world, and might slightly demystify some of the more prescient prophecies.</span></sup>, or the will of Apollo - she was the pipe through which humans conversed with something else, and through that counsel charted the course of human events.</p>
+    <p data-domain="antiquity" data-rope-after="single">Pythia served as the conduit for something - whether it was fumes, the informational networks of the well informed clergy<a class="fn-marker" id="fnref-9" href="#fn-9" role="doc-noteref" data-n="9" aria-label="Footnote 9">[9]</a>, or the will of Apollo - she was the pipe through which humans conversed with something else, and through that counsel charted the course of human events.</p>
 
     <p data-domain="synthesis" data-rope-after="double">LLMs have intelligence of a different kind. Unlocking their value in contexts that matter to us humans will require deterministic processes that are attuned to their failure modes and peculiarities - software that aims to be a conduit between this alien intelligence, and our human preferences, values, and ambitions.</p>
 
@@ -361,18 +641,34 @@
 
     <p data-domain="synthesis">Our first two projects build infrastructure around LLMs to produce reliability and judgement that their stochastic nature cannot achieve by default.</p>
 
-    <p data-domain="synthesis">* In the first, we're using swarms of agents to automate black-box migrations, with Excel as a first target. Excel is the lingua franca of computational modelers in actuary, finance, and the environment, but is often too slow for simulation. Our solution - <a href="https://xplo.pythia.software">xplo</a> has used extensive LLM scaffolding to painstakingly reproduce the Excel engine. That's just the start - this infrastructure will eventually generate replacements for deterministic systems of all kinds.</p>
-
-    <p data-domain="synthesis" data-rope-after="double">* In the second, we're building software to quantify text against arbitrary human described criteria. LLMs are famously bad at generating numerical grades, but are competent at giving qualitative feedback and answering straightforward questions. Our project, Tally, aims to explore how we can elicit numerical evaluation from LLMs that comports with human judgement, even though these systems think in terms of words, not numbers. Tally is showing early promise in solving problems like scientific reputation, content alignment, and subjective filtration.</p>
+    <ol class="projects" data-rope-after="double" aria-label="Pythia Software projects">
+      <li><p data-domain="synthesis">In the first, we're using swarms of agents to automate black-box migrations, with Excel as a first target. Excel is the lingua franca of computational modelers in actuary, finance, and the environment, but is often too slow for simulation. Our solution - <a href="https://xplo.pythia.software">xplo</a> has used extensive LLM scaffolding to painstakingly reproduce the Excel engine. That's just the start - this infrastructure will eventually generate replacements for deterministic systems of all kinds.</p></li>
+      <li><p data-domain="synthesis">In the second, we're building software to quantify text against arbitrary human described criteria. LLMs are famously bad at generating numerical grades, but are competent at giving qualitative feedback and answering straightforward questions. Our project, Tally, aims to explore how we can elicit numerical evaluation from LLMs that comports with human judgement, even though these systems think in terms of words, not numbers. Tally is showing early promise in solving problems like scientific reputation, content alignment, and subjective filtration.</p></li>
+    </ol>
 
     <p data-domain="synthesis" data-emphasis data-rope-after="double">
       AI is young - how it will be scaffolded, factored, and interpreted is still unsettled, and could be profoundly harmful.
-      Technologists have a bad habit of allowing the quirks and contours of technology to drive 
-      how it is applied, rather than following and serving the needs of people. 
+      Technologists have a bad habit of allowing the quirks and contours of technology to drive
+      how it is applied, rather than following and serving the needs of people.
       Pythia will be different: a conduit engineered to create reliable answers from unreliable intelligence, in service of human needs.
     </p>
 
-    <p />
+  </div>
+
+  <section class="footnotes" aria-labelledby="notes-title" role="doc-endnotes">
+    <h2 id="notes-title">Notes</h2>
+    <ol>
+      <li id="fn-1"><span class="fn-text">all text on this site was human written without AI intervention or review</span> <a class="fn-back" href="#fnref-1" aria-label="Back to footnote 1 reference">&#8617;</a></li>
+      <li id="fn-2"><span class="fn-text">Not to be confused with Larry Ellison's law firm posing as a software company.</span> <a class="fn-back" href="#fnref-2" aria-label="Back to footnote 2 reference">&#8617;</a></li>
+      <li id="fn-3"><span class="fn-text"><a href="https://en.wikipedia.org/wiki/Oracle_machine">Oracle machine on Wikipedia</a>.</span> <a class="fn-back" href="#fnref-3" aria-label="Back to footnote 3 reference">&#8617;</a></li>
+      <li id="fn-4"><span class="fn-text">For example, during a migration from System A (the original, trusted system) to System B (the faster, modern replacement), engineers will treat System A like an oracle, and try to cajole or brute-force system B into lockstep.</span> <a class="fn-back" href="#fnref-4" aria-label="Back to footnote 4 reference">&#8617;</a></li>
+      <li id="fn-5"><span class="fn-text"><a href="https://en.wikipedia.org/wiki/List_of_oracular_statements_from_Delphi">List of oracular statements from Delphi on Wikipedia</a>.</span> <a class="fn-back" href="#fnref-5" aria-label="Back to footnote 5 reference">&#8617;</a></li>
+      <li id="fn-6"><span class="fn-text">Outside of conquest, the Delphic Oracle also counseled Cicero to find his voice, set in motion Nero's fate, and inspired the Spartan code of morality.</span> <a class="fn-back" href="#fnref-6" aria-label="Back to footnote 6 reference">&#8617;</a></li>
+      <li id="fn-7"><span class="fn-text">Like most other Software Engineers, I have found my work with AI transfixing - in a very short time period, everything is suddenly possible, malleable, concerning, and surprising.</span> <a class="fn-back" href="#fnref-7" aria-label="Back to footnote 7 reference">&#8617;</a></li>
+      <li id="fn-8"><span class="fn-text"><a href="https://en.wikipedia.org/wiki/Pythia">Pythia on Wikipedia</a>.</span> <a class="fn-back" href="#fnref-8" aria-label="Back to footnote 8 reference">&#8617;</a></li>
+      <li id="fn-9"><span class="fn-text">It is commonly thought that Pythia was aided by the large staff of the temple of Apollo, whose foreign religious emissaries made the temple of Apollo a hub of information about the Greek world, and might slightly demystify some of the more prescient prophecies.</span> <a class="fn-back" href="#fnref-9" aria-label="Back to footnote 9 reference">&#8617;</a></li>
+    </ol>
+  </section>
 
   </article>
 
@@ -383,7 +679,7 @@
   </footer>
 
   <!-- Fabric overlay — rope SVG is injected here by the script below. -->
-  <div class="fabric" id="fabric"></div>
+  <div class="fabric" id="fabric" aria-hidden="true"></div>
 
 </main>
 
@@ -393,9 +689,9 @@
   Two jobs:
     1. Build the decorative "fabric" of woven olive-and-knot ropes around the
        essay. Rope Y positions are measured from the DOM at runtime so they sit
-       in the gutters between paragraphs that carry `data-rope-after`.
-    2. Wire up the footnote popovers — each <sup class="fn-marker"> opens a
-       floating popover that reads its body from the sibling <span class="fn-body">.
+       in the gutters between essay blocks that carry `data-rope-after`.
+    2. Wire up the footnote popovers — each note reference previews the matching
+       semantic endnote while retaining ordinary anchor-link behavior.
 
   The code is organised into labelled sections. Tune the knobs in the CONFIG
   section to change rope density, wave amplitude, scale, or seed.
@@ -409,12 +705,14 @@
   // CONFIG — tweak these to restyle the rope fabric.
   // ==========================================================================
   const CFG = {
-    ink:        '#0A2540',   // must match the CSS --ink (rope interior fill)
-    chalk:      '#F2EEE3',   // rope stroke colour
+    ink:        '#0A2540',   // refreshed from CSS before each render
+    chalk:      '#F2EEE3',   // refreshed from CSS before each render
     seed:       19,          // rng seed; same value = identical rope layout
     extend:     160,         // how far ropes extend past the page edges (px)
     doubleGap:  60,          // vertical gap between paired ("double") ropes
     mobileBP:   720,         // viewport below this => single rail per side
+    railInset:  28,          // mobile rail inset from the viewport edge
+    railMaxGap: 0.25,        // inner rail stays within this fraction of content
     stroke:     1.0,         // rope stroke width
     flavorScale: 0.5,        // multiplier on olive L/w (0.5 = half-size)
     railWave:   8,           // vertical-rope lateral undulation amplitude
@@ -815,40 +1113,48 @@
   // LAYOUT — measure where ropes should sit, then render the fabric.
   // ==========================================================================
 
-  // Vertical rail positions, mirrored across the page.
-  function computeRails(width) {
+  // Vertical rail positions, mirrored around the content column.
+  function computeRails(width, contentLeft, contentRight) {
     // Mobile: one rail per side, nestled in the expanded outer padding.
     if (width < CFG.mobileBP) {
-      return { left: [28], right: [width - 28] };
+      return { left: [CFG.railInset], right: [width - CFG.railInset] };
     }
-    const inner = [52, 100];
-    const extras = [];
-    if (width >= 960)  extras.push(168);
-    if (width >= 1200) extras.push(236);
-    if (width >= 1500) extras.push(308);
-    const left = inner.concat(extras);
+
+    const left = [52, 100];
+    if (width >= 960)  left.push(168);
+    if (width >= 1200) left.push(236);
+    if (width >= 1500) left.push(308);
+
+    // Keep the established spacing, shifting the whole bundle inward only
+    // when its content-facing edge would be too far from the essay.
+    const maxGap = (contentRight - contentLeft) * CFG.railMaxGap;
+    const innerRail = left[left.length - 1];
+    const inwardShift = Math.max(0, contentLeft - innerRail - maxGap);
+    for (let i = 0; i < left.length; i++) left[i] += inwardShift;
+
     const right = left.slice().reverse().map(function (x) { return width - x; });
     return { left: left, right: right };
   }
 
-  // Scan paragraphs tagged with data-rope-after and compute the y-centers
+  // Scan top-level essay blocks tagged with data-rope-after and compute the y-centers
   // where ropes should sit. Returns aligned arrays of ys + pair-ids (same
   // pair-id on the two ropes of a "double" so they curve in parallel).
   function measureRopeYs(pageEl) {
     const pageTop = pageEl.getBoundingClientRect().top;
-    const paras   = pageEl.querySelectorAll('.essay > p');
+    const blocks  = pageEl.querySelectorAll('.essay > *');
     const ys = [];
     const pairIds = [];
     let nextPairId = 0;
 
-    for (let i = 0; i < paras.length; i++) {
-      const kind = paras[i].getAttribute('data-rope-after');
+    for (let i = 0; i < blocks.length; i++) {
+      const kind = blocks[i].getAttribute('data-rope-after');
       if (!kind) continue;
-      const a = paras[i].getBoundingClientRect();
-      const b = paras[i + 1] ? paras[i + 1].getBoundingClientRect() : null;
+      const a = blocks[i].getBoundingClientRect();
+      const b = blocks[i + 1] ? blocks[i + 1].getBoundingClientRect() : null;
+      const trailingGap = parseFloat(window.getComputedStyle(blocks[i]).marginBottom) || 0;
       const center = b
         ? (a.bottom + b.top) / 2 - pageTop
-        :  a.bottom - pageTop + 40;
+        :  a.bottom - pageTop + trailingGap / 2;
       if (kind === 'double') {
         const pid = nextPairId++;
         ys.push(center - CFG.doubleGap / 2);
@@ -866,10 +1172,21 @@
     const pageEl   = document.getElementById('page');
     const fabricEl = document.getElementById('fabric');
     if (!pageEl || !fabricEl) return;
-    const width  = pageEl.getBoundingClientRect().width;
+    if (document.documentElement.classList.contains('reader-view')) {
+      fabricEl.textContent = '';
+      return;
+    }
+    const palette = window.getComputedStyle(document.documentElement);
+    CFG.ink = palette.getPropertyValue('--ink').trim() || CFG.ink;
+    CFG.chalk = palette.getPropertyValue('--chalk').trim() || CFG.chalk;
+    const pageRect = pageEl.getBoundingClientRect();
+    const essayEl = pageEl.querySelector('.essay');
+    const essayRect = essayEl ? essayEl.getBoundingClientRect() : pageRect;
+    const width  = pageRect.width;
     const height = pageEl.scrollHeight;
     const measured = measureRopeYs(pageEl);
-    const rails    = computeRails(width);
+    const rails = computeRails(width, essayRect.left - pageRect.left,
+                               essayRect.right - pageRect.left);
     fabricEl.textContent = '';  // clear any previous render
     fabricEl.appendChild(
       buildFabric(width, height, measured.ys, measured.pairIds, rails.left, rails.right)
@@ -904,6 +1221,7 @@
     }
 
     function hidePopover() {
+      if (activeMarker) activeMarker.removeAttribute('aria-describedby');
       if (popEl) { popEl.remove(); popEl = null; }
       activeMarker = null;
     }
@@ -925,16 +1243,22 @@
       if (activeMarker === marker && popEl) return;
       hidePopover();
       const n      = marker.getAttribute('data-n');
-      const bodyEl = marker.querySelector('.fn-body');
-      const body   = bodyEl ? bodyEl.innerHTML : '';
+      const noteEl = document.querySelector(marker.getAttribute('href'));
+      const bodyEl = noteEl ? noteEl.querySelector('.fn-text') : null;
       popEl = document.createElement('div');
       popEl.className = 'fn-pop';
       popEl.setAttribute('role', 'tooltip');
-      popEl.innerHTML = '<span class="fn-pop-num">[' + n + ']</span>' + body;
+      popEl.id = 'fn-pop-' + n;
+      const numberEl = document.createElement('span');
+      numberEl.className = 'fn-pop-num';
+      numberEl.textContent = '[' + n + ']';
+      popEl.appendChild(numberEl);
+      popEl.appendChild(document.createTextNode(bodyEl ? bodyEl.textContent : ''));
       popEl.addEventListener('mouseenter', cancelHide);
       popEl.addEventListener('mouseleave', scheduleHide);
       document.body.appendChild(popEl);
       activeMarker = marker;
+      marker.setAttribute('aria-describedby', popEl.id);
       positionPopover(marker);
     }
 
@@ -943,6 +1267,16 @@
       m.addEventListener('mouseleave', scheduleHide);
       m.addEventListener('focus',      function () { showPopover(m); });
       m.addEventListener('blur',       hidePopover);
+      m.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') hidePopover();
+      });
+    });
+
+    document.querySelectorAll('.fn-back').forEach(function (backlink) {
+      backlink.addEventListener('click', function () {
+        const reference = document.querySelector(backlink.getAttribute('href'));
+        if (reference) window.setTimeout(function () { reference.focus(); }, 0);
+      });
     });
 
     // Reposition on scroll/resize while a popover is open.
@@ -955,9 +1289,83 @@
   }
 
   // ==========================================================================
+  // COLOR THEME
+  // ==========================================================================
+  function wireColorTheme() {
+    const root = document.documentElement;
+    const button = document.getElementById('theme-toggle');
+    const status = document.getElementById('theme-status');
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (!button) return;
+
+    function syncTheme(announce) {
+      const light = root.classList.contains('light-theme');
+      button.textContent = light ? 'Dark mode' : 'Light mode';
+      button.setAttribute('aria-label', light ? 'Use dark mode' : 'Use light mode');
+      if (themeMeta) themeMeta.setAttribute('content', light ? '#F7F3E8' : '#0A2540');
+      if (announce && status) {
+        status.textContent = light ? 'Light mode enabled.' : 'Dark mode enabled.';
+      }
+    }
+
+    button.hidden = false;
+    syncTheme(false);
+    button.addEventListener('click', function () {
+      const light = root.classList.toggle('light-theme');
+      try {
+        window.localStorage.setItem('pythia-color-theme', light ? 'light' : 'dark');
+        const url = new URL(window.location.href);
+        url.searchParams.set('theme', light ? 'light' : 'dark');
+        window.history.replaceState(null, '', url);
+      } catch (error) {
+        // The selected palette remains active without storage or History access.
+      }
+      syncTheme(true);
+      renderFabric();
+    });
+  }
+
+  // ==========================================================================
+  // READER VIEW
+  // ==========================================================================
+  function wireReaderView() {
+    const root = document.documentElement;
+    const button = document.getElementById('reader-toggle');
+    const status = document.getElementById('reader-status');
+    if (!button) return;
+
+    function syncButton(announce) {
+      const active = root.classList.contains('reader-view');
+      button.setAttribute('aria-pressed', String(active));
+      button.textContent = active ? 'Exit reader view' : 'Reader view';
+      if (announce && status) {
+        status.textContent = active ? 'Reader view enabled.' : 'Reader view disabled.';
+      }
+    }
+
+    button.hidden = false;
+    syncButton(false);
+    button.addEventListener('click', function () {
+      const active = root.classList.toggle('reader-view');
+      try {
+        window.localStorage.setItem('pythia-reader-view', String(active));
+        const url = new URL(window.location.href);
+        url.searchParams.set('reader', active ? '1' : '0');
+        window.history.replaceState(null, '', url);
+      } catch (error) {
+        // The visual state remains usable without storage or History access.
+      }
+      syncButton(true);
+      renderFabric();
+    });
+  }
+
+  // ==========================================================================
   // INIT
   // ==========================================================================
   function init() {
+    wireColorTheme();
+    wireReaderView();
     renderFabric();
     wireFootnotes();
 
