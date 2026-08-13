@@ -11,7 +11,7 @@ find_open_port() {
 }
 
 PORT=$(find_open_port)
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/public"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 echo "Starting live-reload server on port $PORT..."
 echo "Open http://localhost:$PORT in your browser"
