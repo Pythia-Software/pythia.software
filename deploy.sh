@@ -35,8 +35,7 @@ for file in "${SITE_FILES[@]}"; do
   fi
 done
 
-# This generated directory deliberately excludes CNAME, scripts, and repository
-# metadata so GitHub Pages can remain live until the DNS cutover is complete.
+# This generated directory deliberately excludes scripts and repository metadata.
 if [[ "$OUTPUT_DIR" != "$REPO_ROOT/.firebase-public" ]]; then
   echo "error: refusing to clean unexpected output directory: $OUTPUT_DIR" >&2
   exit 1
