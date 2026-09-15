@@ -1,0 +1,12 @@
+{
+  "projects": {
+    "default": "pythia-mail"
+  },
+  "targets": {
+    "pythia-mail": {
+      "hosting": {
+        "pythia-software": ["pythia-software"]
+      }
+    }
+  }
+}
