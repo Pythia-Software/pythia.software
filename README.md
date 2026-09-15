@@ -13,6 +13,17 @@ the dedicated `pythia-software` Hosting site.
 The script finds an available port beginning at 8000, starts a local server,
 and opens it in a browser.
 
+## Build
+
+```sh
+./build.sh
+```
+
+`build.sh` generates the standalone HTML pages in `.site-build/`. `index.html`
+is the canonical homepage and shared site shell; additional page content lives
+in `site/pages/`. This keeps the deployed site fully static while allowing new
+pages to reuse the homepage's theme, controls, decorative fabric, and footer.
+
 ## Deploy
 
 Install the Firebase CLI and authenticate once:
@@ -28,9 +39,9 @@ Then deploy:
 ./deploy.sh
 ```
 
-The deployment script stages only the public site assets in the ignored
-`.firebase-public` directory and deploys the `pythia-software` target. It does
-not deploy or modify the existing `pythia-mail` Hosting site used by
+The deployment script runs `build.sh`, stages only the generated public assets
+in the ignored `.firebase-public` directory, and deploys the `pythia-software`
+target. It does not deploy or modify the existing `pythia-mail` Hosting site used by
 `mail.pythia.software`.
 
 The live Firebase endpoint is <https://pythia-software.web.app>. The custom

@@ -3,12 +3,14 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BUILD_DIR="$REPO_ROOT/.site-build"
 OUTPUT_DIR="$REPO_ROOT/.firebase-public"
 PROJECT_ID="pythia-mail"
 HOSTING_TARGET="pythia-software"
 
 SITE_FILES=(
   index.html
+  contact.html
   site.webmanifest
   favicon.ico
   favicon-16x16.png
@@ -18,6 +20,8 @@ SITE_FILES=(
   android-chrome-512x512.png
 )
 
+"$REPO_ROOT/build.sh"
+
 if ! command -v firebase >/dev/null 2>&1; then
   echo "error: firebase CLI is not installed" >&2
   echo "       install it with: npm install --global firebase-tools" >&2
@@ -25,7 +29,7 @@ if ! command -v firebase >/dev/null 2>&1; then
 fi
 
 for file in "${SITE_FILES[@]}"; do
-  if [[ ! -f "$REPO_ROOT/$file" ]]; then
+  if [[ ! -f "$BUILD_DIR/$file" ]]; then
     echo "error: required site file is missing: $file" >&2
     exit 1
   fi
@@ -41,7 +45,7 @@ rm -rf -- "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
 for file in "${SITE_FILES[@]}"; do
-  cp "$REPO_ROOT/$file" "$OUTPUT_DIR/$file"
+  cp "$BUILD_DIR/$file" "$OUTPUT_DIR/$file"
 done
 
 echo "==> Deploying $HOSTING_TARGET to Firebase Hosting"
