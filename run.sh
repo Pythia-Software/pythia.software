@@ -12,6 +12,7 @@ find_open_port() {
 
 PORT=$(find_open_port)
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+"$DIR/build.sh"
 
 echo "Starting live-reload server on port $PORT..."
 echo "Open http://localhost:$PORT in your browser"
@@ -19,7 +20,10 @@ echo ""
 
 # Create a temporary directory for our inject script
 TEMP_DIR=$(mktemp -d)
-trap "rm -rf $TEMP_DIR" EXIT
+cleanup() {
+  rm -rf -- "$TEMP_DIR"
+}
+trap cleanup EXIT
 
 # Create a simple reload script that polls for changes
 cat > "$TEMP_DIR/reload.js" << 'SCRIPT'
@@ -29,12 +33,16 @@ cat > "$TEMP_DIR/reload.js" << 'SCRIPT'
     try {
       const response = await fetch(window.location.href, { cache: 'no-store' });
       const html = await response.text();
-      const hash = btoa(html).slice(0, 20);
+      let hash = 0;
+      for (let i = 0; i < html.length; i++) {
+        hash = ((hash << 5) - hash + html.charCodeAt(i)) | 0;
+      }
       const stored = localStorage.getItem('_page_hash');
-      if (stored && stored !== hash) {
+      const fingerprint = `${html.length}:${hash}`;
+      if (stored && stored !== fingerprint) {
         window.location.reload();
       }
-      localStorage.setItem('_page_hash', hash);
+      localStorage.setItem('_page_hash', fingerprint);
     } catch (e) {}
   }, 1000);
 })();
@@ -46,11 +54,47 @@ import os
 import sys
 import http.server
 import socketserver
-import json
+import subprocess
 import time
 import webbrowser
 import threading
+from functools import partial
 from pathlib import Path
+
+repo_dir = Path('$DIR')
+build_dir = repo_dir / '.site-build'
+pages_dir = repo_dir / 'site' / 'pages'
+
+def pages_snapshot():
+    while True:
+        try:
+            snapshot = {}
+            for path in pages_dir.rglob('*'):
+                if path.is_file():
+                    stat = path.stat()
+                    snapshot[str(path.relative_to(pages_dir))] = (stat.st_mtime_ns, stat.st_size)
+            return snapshot
+        except FileNotFoundError:
+            # An editor may replace a temporary file while it is being scanned.
+            continue
+
+def watch_pages():
+    snapshot = pages_snapshot()
+    while True:
+        time.sleep(0.25)
+        current = pages_snapshot()
+        if current == snapshot:
+            continue
+
+        # Give editors that save through a temporary file a moment to settle.
+        time.sleep(0.1)
+        current = pages_snapshot()
+        print('Pages changed; rebuilding...', file=sys.stderr, flush=True)
+        try:
+            subprocess.run([str(repo_dir / 'build.sh')], check=True)
+        except subprocess.CalledProcessError:
+            print('Build failed; waiting for the next save.', file=sys.stderr, flush=True)
+        snapshot = current
 
 class LiveReloadHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -58,7 +102,7 @@ class LiveReloadHandler(http.server.SimpleHTTPRequestHandler):
         if self.path == '/' or self.path.endswith('.html'):
             # For HTML files, inject the reload script
             try:
-                file_path = Path('$DIR') / (self.path.lstrip('/') or 'index.html')
+                file_path = build_dir / (self.path.lstrip('/') or 'index.html')
                 if file_path.is_file() and file_path.suffix == '.html':
                     with open(file_path, 'rb') as f:
                         content = f.read()
@@ -98,8 +142,8 @@ class LiveReloadHandler(http.server.SimpleHTTPRequestHandler):
         if 'GET' in args[0]:
             print(f"  {args[0]}", file=sys.stderr)
 
-os.chdir('$DIR')
-with socketserver.TCPServer(('', $PORT), LiveReloadHandler) as httpd:
+handler = partial(LiveReloadHandler, directory=str(build_dir))
+with socketserver.TCPServer(('', $PORT), handler) as httpd:
     url = f'http://localhost:$PORT'
     print(f'Server running on {url}', file=sys.stderr)
 
@@ -109,6 +153,7 @@ with socketserver.TCPServer(('', $PORT), LiveReloadHandler) as httpd:
         webbrowser.open(url)
 
     threading.Thread(target=open_browser, daemon=True).start()
+    threading.Thread(target=watch_pages, daemon=True).start()
 
     try:
         httpd.serve_forever()
