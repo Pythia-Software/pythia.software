@@ -641,10 +641,14 @@
 
     <p data-domain="synthesis">Our first two projects build infrastructure around LLMs to produce reliability and judgement that their stochastic nature cannot achieve by default.</p>
 
-    <ol class="projects" data-rope-after="double" aria-label="Pythia Software projects">
-      <li><p data-domain="synthesis">In the first, we're using swarms of agents to automate black-box migrations, with Excel as a first target. Excel is the lingua franca of computational modelers in actuary, finance, and the environment, but is often too slow for simulation. Our solution - <a href="https://xplo.pythia.software">xplo</a> has used extensive LLM scaffolding to painstakingly reproduce the Excel engine. That's just the start - this infrastructure will eventually generate replacements for deterministic systems of all kinds.</p></li>
+    <ol class="projects" aria-label="Pythia Software projects">
+      <li><p data-domain="synthesis">In the first, we're using swarms of agents to automate black-box migrations, with Excel as a first target. Excel is the lingua franca of computational modelers in actuary, finance, and the environment, but is often too slow for simulation, and doesn't plug into other code well. Our solution - <a href="https://xplo.pythia.software">xplo</a> has used LLM scaffolding to replicate Excel functionality bit-for-bit. That's just the start - this problem serves as the test case: if we can replicate the functionality of Excel through automation (without access to source code), the same approaches can be used on migrations of all kinds. Generic migration infrastructure is coming.</p></li>
       <li><p data-domain="synthesis">In the second, we're building software to quantify text against arbitrary human described criteria. LLMs are famously bad at generating numerical grades, but are competent at giving qualitative feedback and answering straightforward questions. Our project, Tally, aims to explore how we can elicit numerical evaluation from LLMs that comports with human judgement, even though these systems think in terms of words, not numbers. Tally is showing early promise in solving problems like scientific reputation, content alignment, and subjective filtration.</p></li>
     </ol>
+
+    <p  data-domain="synthesis" data-rope-after="double" >
+      Subscribe to <a href="https://mail.pythia.software">our newsletter and technical blogs</a> to stay up to date on our progress.
+    </p>
 
     <p data-domain="synthesis" data-emphasis data-rope-after="double">
       AI is young - how it will be scaffolded, factored, and interpreted is still unsettled, and could be profoundly harmful.
