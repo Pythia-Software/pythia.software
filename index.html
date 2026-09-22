@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>Pythia Software</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A View from Delphi, an essay about building software that translates between AI capabilities and human goals.">
+  <meta name="description" content="Pythia Software is a Colorado technology startup in stealth, building tools for practical AI transformation and automation.">
   <meta name="theme-color" content="#0A2540">
 
   <script>
@@ -284,6 +284,106 @@
       letter-spacing: 0.003em;
     }
 
+    /* Landing page: a compact statement framed by the shared page fabric. */
+    .landing {
+      position: relative;
+      z-index: 1;
+      min-height: calc(100vh - 245px);
+      display: grid;
+      place-items: center;
+      padding: 72px 24px 96px;
+    }
+    .landing-inner {
+      width: min(100%, 760px);
+      padding: 62px clamp(28px, 7vw, 72px) 56px;
+      border-top: 1px solid var(--chalk-faint);
+      border-bottom: 1px solid var(--chalk-faint);
+      background: color-mix(in srgb, var(--ink) 94%, transparent);
+      text-align: center;
+    }
+    .landing-kicker {
+      margin: 0 0 14px;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .stealth-status {
+      width: fit-content;
+      margin: 0 auto 30px;
+      padding: 7px 11px;
+      border: 1px solid var(--chalk-faint);
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+    .landing h1 {
+      margin: 0;
+      font-size: clamp(48px, 8vw, 84px);
+      font-weight: 300;
+      line-height: 0.94;
+      letter-spacing: -0.03em;
+      text-wrap: balance;
+    }
+    .landing h1 em { font-weight: 300; }
+    .landing-lede {
+      max-width: 620px;
+      margin: 38px auto 0;
+      font-size: clamp(21px, 3vw, 26px);
+      line-height: 1.45;
+      text-wrap: balance;
+    }
+    .landing-detail {
+      max-width: 560px;
+      margin: 18px auto 0;
+      font-size: 18px;
+      line-height: 1.55;
+      color: var(--chalk-dim);
+      text-wrap: pretty;
+    }
+    .landing-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 24px 30px;
+      flex-wrap: wrap;
+      margin-top: 38px;
+    }
+    .primary-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 13px 20px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: var(--ink);
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+    .primary-action:hover { background: var(--chalk); border-color: var(--chalk); }
+    .text-action {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 13px;
+      letter-spacing: 0.03em;
+      text-underline-offset: 4px;
+    }
+    .founder-line {
+      margin: 34px 0 0;
+      font-size: 16px;
+      font-style: italic;
+      color: var(--chalk-dim);
+    }
+
     /* Margin rules for rope boundaries.
        A paragraph that ENDS a rope boundary gets bigger margin-bottom;
        the NEXT paragraph gets the matching margin-top via adjacent-sibling. */
@@ -317,6 +417,9 @@
       .masthead { padding: 52px 24px 0; }
       .masthead-inner { flex-direction: column; }
       .view-controls { position: static; }
+      .landing { min-height: auto; padding: 56px 40px 72px; }
+      .landing-inner { padding: 48px 16px 44px; }
+      .landing h1 { font-size: clamp(43px, 14vw, 62px); }
       footer.footer {
         flex-direction: column;
         align-items: center;
@@ -588,7 +691,7 @@
 </head>
 
 <body>
-<a class="skip-link" href="#essay">Skip to essay</a>
+<a class="skip-link" href="#home">Skip to main content</a>
 <main class="page" id="page">
 
   <!-- Background graph-paper grid: three line-weight tiers in a 4-step cycle. -->
@@ -615,7 +718,7 @@
   <header class="masthead">
     <div class="masthead-inner">
       <div class="masthead-row">
-        <span>Pythia Software LLC</span>
+        <span><a href="/">Pythia Software LLC</a></span>
         <span class="masthead-dot" aria-hidden="true"></span>
         <span aria-hidden="true">Est. MMXXVI</span>
         <span class="sr-only">Established 2026</span>
@@ -713,7 +816,7 @@
   <!-- Footer -->
   <footer class="footer">
     <span class="tick">Pythia Software LLC &middot; MMXXVI</span>
-    <span class="tick"><a href="mailto:hello@pythia.software">hello@pythia.software</a></span>
+    <span class="tick"><a href="/about">About</a> &middot; <a href="/contact.html">Contact</a></span>
   </footer>
 
   <!-- Fabric overlay — rope SVG is injected here by the script below. -->

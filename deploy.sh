@@ -10,6 +10,7 @@ HOSTING_TARGET="pythia-software"
 
 SITE_FILES=(
   index.html
+  about/index.html
   contact.html
   site.webmanifest
   favicon.ico
@@ -44,6 +45,7 @@ rm -rf -- "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
 for file in "${SITE_FILES[@]}"; do
+  mkdir -p "$(dirname "$OUTPUT_DIR/$file")"
   cp "$BUILD_DIR/$file" "$OUTPUT_DIR/$file"
 done
 

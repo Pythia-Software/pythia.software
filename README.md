@@ -20,9 +20,9 @@ and opens it in a browser.
 ```
 
 `build.sh` generates the standalone HTML pages in `.site-build/`. `index.html`
-is the canonical homepage and shared site shell; additional page content lives
-in `site/pages/`. This keeps the deployed site fully static while allowing new
-pages to reuse the homepage's theme, controls, decorative fabric, and footer.
+is the shared site shell; page content lives in `site/pages/`. This keeps the
+deployed site fully static while allowing every page to reuse the same theme,
+controls, decorative fabric, and footer.
 
 ## Deploy
 
