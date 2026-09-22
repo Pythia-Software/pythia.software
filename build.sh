@@ -4,10 +4,12 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_PAGE="$REPO_ROOT/index.html"
+HOME_PAGE="$REPO_ROOT/site/pages/home.html"
 CONTACT_PAGE="$REPO_ROOT/site/pages/contact.html"
+ABOUT_PAGE="$REPO_ROOT/site/pages/about.html"
 OUTPUT_DIR="$REPO_ROOT/.site-build"
 
-for file in "$SOURCE_PAGE" "$CONTACT_PAGE"; do
+for file in "$SOURCE_PAGE" "$HOME_PAGE" "$CONTACT_PAGE" "$ABOUT_PAGE"; do
   if [[ ! -f "$file" ]]; then
     echo "error: required build source is missing: $file" >&2
     exit 1
@@ -27,7 +29,9 @@ import shutil
 
 root = Path(os.environ["REPO_ROOT"])
 source = (root / "index.html").read_text(encoding="utf-8")
+home = (root / "site/pages/home.html").read_text(encoding="utf-8").strip()
 contact = (root / "site/pages/contact.html").read_text(encoding="utf-8").strip()
+about = (root / "site/pages/about.html").read_text(encoding="utf-8").strip()
 output = root / ".site-build"
 
 start = "<!-- PAGE_CONTENT_START: build.sh substitutes this section for each page. -->"
@@ -37,18 +41,29 @@ if len(pattern.findall(source)) != 1:
     raise SystemExit("error: expected exactly one PAGE_CONTENT section in index.html")
 
 def write_page(name: str, html: str) -> None:
-    (output / name).write_text(html, encoding="utf-8")
+    destination = output / name
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(html, encoding="utf-8")
 
-# The source is also the homepage's complete content, so it can be emitted as-is.
-write_page("index.html", source)
+home_html = pattern.sub(f"{start}\n{home}\n  {end}", source)
+write_page("index.html", home_html)
+
+about_html = pattern.sub(f"{start}\n{about}\n  {end}", source)
+about_html = about_html.replace("<title>Pythia Software</title>", "<title>A View from Delphi · Pythia Software</title>")
+about_html = about_html.replace(
+    '<meta name="description" content="Pythia Software is a Colorado technology startup in stealth, building tools for practical AI transformation and automation.">',
+    '<meta name="description" content="A View from Delphi, an essay about building software that translates between AI capabilities and human goals.">',
+)
+about_html = about_html.replace('href="#home">Skip to main content', 'href="#essay">Skip to essay')
+write_page("about/index.html", about_html)
 
 contact_html = pattern.sub(f"{start}\n{contact}\n  {end}", source)
 contact_html = contact_html.replace("<title>Pythia Software</title>", "<title>Contact Information · Pythia Software</title>")
 contact_html = contact_html.replace(
-    '<meta name="description" content="A View from Delphi, an essay about building software that translates between AI capabilities and human goals.">',
+    '<meta name="description" content="Pythia Software is a Colorado technology startup in stealth, building tools for practical AI transformation and automation.">',
     '<meta name="description" content="Contact information for Pythia Software.">',
 )
-contact_html = contact_html.replace('href="#essay">Skip to essay', 'href="#contact">Skip to contact information')
+contact_html = contact_html.replace('href="#home">Skip to main content', 'href="#contact">Skip to contact information')
 contact_html = contact_html.replace(
     '<span class="tick"><a href="mailto:hello@pythia.software">hello@pythia.software</a></span>',
     '',

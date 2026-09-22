@@ -1,0 +1,62 @@
+<article aria-labelledby="essay-title">
+  <div class="title-block">
+    <h1 id="essay-title">A View from Delphi</h1>
+    <div class="subtitle">by <a href="https://grady.dev" rel="author">Grady Berry Ward</a><a class="fn-marker" id="fnref-1" href="#fn-1" role="doc-noteref" data-n="1" aria-label="Footnote 1">[1]</a></div>
+  </div>
+
+  <div class="essay" id="essay" tabindex="-1">
+    <p data-domain="software">
+      In information theory, there is a concept called an oracle<a class="fn-marker" id="fnref-2" href="#fn-2" role="doc-noteref" data-n="2" aria-label="Footnote 2">[2]</a>
+       - a system that can reliably and correctly answer a question of a given kind<a class="fn-marker" id="fnref-3" href="#fn-3" role="doc-noteref" data-n="3" aria-label="Footnote 3">[3]</a>.
+        When the term is used in software, it is misappropriated to describe a machine whose behavior is
+        authoritative<a class="fn-marker" id="fnref-4" href="#fn-4" role="doc-noteref" data-n="4" aria-label="Footnote 4">[4]</a>.
+    </p>
+
+    <p data-domain="software" data-rope-after="single">Thus when we speak of an oracle in the world of software we're often really thinking about very large sets of pairs - inputs and outputs. ML, AI, reverse engineering, cryptography - all of these fields interrogate, predict, and emulate system behavior through analyzing pairs of stimulus and response.</p>
+
+    <p data-domain="antiquity" data-rope-after="single">The Oracle from antiquity, the one at the temple of Apollo at Delphi, profoundly changed the course of Greek history. Many of her prophecies not just foretold the fates of city states and empires, but influenced the choices that developed and doomed them. These include Athens' admonishment to "trust in wooden walls", Phillip II's hint toward "silver spears" to conquer the world, and Croesus' "destruction of a mighty empire if you attack" (it turned out to be his own)<a class="fn-marker" id="fnref-5" href="#fn-5" role="doc-noteref" data-n="5" aria-label="Footnote 5">[5]</a><a class="fn-marker" id="fnref-6" href="#fn-6" role="doc-noteref" data-n="6" aria-label="Footnote 6">[6]</a>. When believed, prophecy changes the course of events through its utterance.</p>
+
+    <p data-domain="software" data-rope-after="single">Through a plethora of inputs and outputs, I've gained both appreciation for and skepticism of AI<a class="fn-marker" id="fnref-7" href="#fn-7" role="doc-noteref" data-n="7" aria-label="Footnote 7">[7]</a>. Some capabilities - reasoning, discovery, creativity - are developing quickly and already proving useful. Some flaws - accuracy, judgement, and empathy to name a few - seem like they are stuck, unlikely to be improved by a bigger training run. Many of the things that our minds are capable of are cultivated through experience, internal state, relationship, and the divine.</p>
+
+    <p data-domain="antiquity">The Oracle at Delphi had a title - that of Pythia (a role assumed by many individuals over time, like the Pope)<a class="fn-marker" id="fnref-8" href="#fn-8" role="doc-noteref" data-n="8" aria-label="Footnote 8">[8]</a>. Pythia - the high Priestess - was the woman charged with dispensing Apollo's wisdom. While accounts of how she worked are scarce and conflicting, this may have involved the inhalation of psychedelic fumes from the earth, the transcription and interpretation of other priestesses and priests, and a variety of cleansing rituals to prepare both the Oracle and supplicant for the truth.</p>
+
+    <p data-domain="antiquity" data-rope-after="single">Pythia served as the conduit for something - whether it was fumes, the informational networks of the well informed clergy<a class="fn-marker" id="fnref-9" href="#fn-9" role="doc-noteref" data-n="9" aria-label="Footnote 9">[9]</a>, or the will of Apollo - she was the pipe through which humans conversed with something else, and through that counsel charted the course of human events.</p>
+
+    <p data-domain="synthesis" data-rope-after="double">LLMs have intelligence of a different kind. Unlocking their value in contexts that matter to us humans will require deterministic processes that are attuned to their failure modes and peculiarities - software that aims to be a conduit between this alien intelligence, and our human preferences, values, and ambitions.</p>
+
+    <p data-domain="synthesis" data-emphasis data-rope-after="double">This is the vision that animates Pythia Software: to build translation between mechanistic capabilities, and human goals.</p>
+
+    <p data-domain="synthesis">Our first two projects build infrastructure around LLMs to produce reliability and judgement that their stochastic nature cannot achieve by default.</p>
+
+    <ol class="projects" aria-label="Pythia Software projects">
+      <li><p data-domain="synthesis">In the first, we're using swarms of agents to automate black-box migrations, with Excel as a first target. Excel is the lingua franca of computational modelers in actuary, finance, and the environment, but is often too slow for simulation, and doesn't plug into other code well. Our solution - <a href="https://xplo.pythia.software">xplo</a> has used LLM scaffolding to replicate Excel functionality bit-for-bit. That's just the start - this problem serves as the test case: if we can replicate the functionality of Excel through automation (without access to source code), the same approaches can be used on migrations of all kinds. Generic migration infrastructure is coming.</p></li>
+      <li><p data-domain="synthesis">In the second, we're building software to quantify text against arbitrary human described criteria. LLMs are famously bad at generating numerical grades, but are competent at giving qualitative feedback and answering straightforward questions. Our project, Tally, aims to explore how we can elicit numerical evaluation from LLMs that comports with human judgement, even though these systems think in terms of words, not numbers. Tally is showing early promise in solving problems like scientific reputation, content alignment, and subjective filtration.</p></li>
+    </ol>
+
+    <p data-domain="synthesis" data-rope-after="double">
+      Subscribe to <a href="https://mail.pythia.software">our newsletter and technical blogs</a> to stay up to date on our progress.
+    </p>
+
+    <p data-domain="synthesis" data-emphasis data-rope-after="double">
+      AI is young - how it will be scaffolded, factored, and interpreted is still unsettled, and could be profoundly harmful.
+      Technologists have a bad habit of allowing the quirks and contours of technology to drive
+      how it is applied, rather than following and serving the needs of people.
+      Pythia will be different: a conduit engineered to create reliable answers from unreliable intelligence, in service of human needs.
+    </p>
+  </div>
+
+  <section class="footnotes" aria-labelledby="notes-title" role="doc-endnotes">
+    <h2 id="notes-title">Notes</h2>
+    <ol>
+      <li id="fn-1"><span class="fn-text">all text on this site was human written without AI intervention or review</span> <a class="fn-back" href="#fnref-1" aria-label="Back to footnote 1 reference">&#8617;</a></li>
+      <li id="fn-2"><span class="fn-text">Not to be confused with Larry Ellison's law firm posing as a software company.</span> <a class="fn-back" href="#fnref-2" aria-label="Back to footnote 2 reference">&#8617;</a></li>
+      <li id="fn-3"><span class="fn-text"><a href="https://en.wikipedia.org/wiki/Oracle_machine">Oracle machine on Wikipedia</a>.</span> <a class="fn-back" href="#fnref-3" aria-label="Back to footnote 3 reference">&#8617;</a></li>
+      <li id="fn-4"><span class="fn-text">For example, during a migration from System A (the original, trusted system) to System B (the faster, modern replacement), engineers will treat System A like an oracle, and try to cajole or brute-force system B into lockstep.</span> <a class="fn-back" href="#fnref-4" aria-label="Back to footnote 4 reference">&#8617;</a></li>
+      <li id="fn-5"><span class="fn-text"><a href="https://en.wikipedia.org/wiki/List_of_oracular_statements_from_Delphi">List of oracular statements from Delphi on Wikipedia</a>.</span> <a class="fn-back" href="#fnref-5" aria-label="Back to footnote 5 reference">&#8617;</a></li>
+      <li id="fn-6"><span class="fn-text">Outside of conquest, the Delphic Oracle also counseled Cicero to find his voice, set in motion Nero's fate, and inspired the Spartan code of morality.</span> <a class="fn-back" href="#fnref-6" aria-label="Back to footnote 6 reference">&#8617;</a></li>
+      <li id="fn-7"><span class="fn-text">Like most other Software Engineers, I have found my work with AI transfixing - in a very short time period, everything is suddenly possible, malleable, concerning, and surprising.</span> <a class="fn-back" href="#fnref-7" aria-label="Back to footnote 7 reference">&#8617;</a></li>
+      <li id="fn-8"><span class="fn-text"><a href="https://en.wikipedia.org/wiki/Pythia">Pythia on Wikipedia</a>.</span> <a class="fn-back" href="#fnref-8" aria-label="Back to footnote 8 reference">&#8617;</a></li>
+      <li id="fn-9"><span class="fn-text">It is commonly thought that Pythia was aided by the large staff of the temple of Apollo, whose foreign religious emissaries made the temple of Apollo a hub of information about the Greek world, and might slightly demystify some of the more prescient prophecies.</span> <a class="fn-back" href="#fnref-9" aria-label="Back to footnote 9 reference">&#8617;</a></li>
+    </ol>
+  </section>
+</article>
