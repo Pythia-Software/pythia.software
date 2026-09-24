@@ -12,6 +12,8 @@ SITE_FILES=(
   index.html
   about/index.html
   contact.html
+  privacy.html
+  terms.html
   site.webmanifest
   favicon.ico
   favicon-16x16.png

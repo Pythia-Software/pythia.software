@@ -24,6 +24,17 @@ is the shared site shell; page content lives in `site/pages/`. This keeps the
 deployed site fully static while allowing every page to reuse the same theme,
 controls, decorative fabric, and footer.
 
+The Mail Manager privacy policy and terms are generated as `privacy.html` and
+`terms.html`. Firebase Hosting serves them at `/privacy` and `/terms` through
+same-site rewrites. Before deploying changes to either policy, have the service
+owner confirm the effective date and obtain legal approval. The owner has
+confirmed that the provider list is Google Cloud/Firebase, Neon, and Twilio,
+with no additional analytics or marketing recipients, and that deletion
+requests go to info@pythia.software for manual review. The policy and SMS
+program cover only xplo Tech Blog and Pythia startup announcements. Before
+registration, the Mail Manager app must prevent Grady publication texts from
+using this SMS sender or campaign; those publications are outside these pages.
+
 ## Deploy
 
 Install the Firebase CLI and authenticate once:

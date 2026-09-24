@@ -7,9 +7,11 @@ SOURCE_PAGE="$REPO_ROOT/index.html"
 HOME_PAGE="$REPO_ROOT/site/pages/home.html"
 CONTACT_PAGE="$REPO_ROOT/site/pages/contact.html"
 ABOUT_PAGE="$REPO_ROOT/site/pages/about.html"
+PRIVACY_PAGE="$REPO_ROOT/site/pages/privacy.html"
+TERMS_PAGE="$REPO_ROOT/site/pages/terms.html"
 OUTPUT_DIR="$REPO_ROOT/.site-build"
 
-for file in "$SOURCE_PAGE" "$HOME_PAGE" "$CONTACT_PAGE" "$ABOUT_PAGE"; do
+for file in "$SOURCE_PAGE" "$HOME_PAGE" "$CONTACT_PAGE" "$ABOUT_PAGE" "$PRIVACY_PAGE" "$TERMS_PAGE"; do
   if [[ ! -f "$file" ]]; then
     echo "error: required build source is missing: $file" >&2
     exit 1
@@ -32,6 +34,8 @@ source = (root / "index.html").read_text(encoding="utf-8")
 home = (root / "site/pages/home.html").read_text(encoding="utf-8").strip()
 contact = (root / "site/pages/contact.html").read_text(encoding="utf-8").strip()
 about = (root / "site/pages/about.html").read_text(encoding="utf-8").strip()
+privacy = (root / "site/pages/privacy.html").read_text(encoding="utf-8").strip()
+terms = (root / "site/pages/terms.html").read_text(encoding="utf-8").strip()
 output = root / ".site-build"
 
 start = "<!-- PAGE_CONTENT_START: build.sh substitutes this section for each page. -->"
@@ -69,6 +73,24 @@ contact_html = contact_html.replace(
     '',
 )
 write_page("contact.html", contact_html)
+
+for name, content, title, description, skip_target, skip_label in (
+    ("privacy.html", privacy, "Privacy Policy · Pythia Software",
+     "Privacy policy for Pythia Software's Mail Manager subscription and messaging service.",
+     "privacy", "Skip to privacy policy"),
+    ("terms.html", terms, "Terms &amp; Messaging Program · Pythia Software",
+     "Terms and text messaging program for Pythia Software's Mail Manager service.",
+     "terms", "Skip to terms and messaging program"),
+):
+    page = pattern.sub(f"{start}\n{content}\n  {end}", source)
+    page = page.replace("<title>Pythia Software</title>", f"<title>{title}</title>")
+    page = page.replace(
+        '<meta name="description" content="Pythia Software is a Colorado technology startup in stealth, building tools for practical AI transformation and automation.">',
+        f'<meta name="description" content="{description}">',
+    )
+    page = page.replace('href="#home">Skip to main content',
+                        f'href="#{skip_target}">{skip_label}')
+    write_page(name, page)
 
 for asset in (
     "site.webmanifest", "favicon.ico", "favicon-16x16.png", "favicon-32x32.png",
