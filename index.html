@@ -284,6 +284,37 @@
       letter-spacing: 0.003em;
     }
 
+    /* Policy pages use a wider, quieter reading column. */
+    .policy-copy {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 28px 48px;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+    }
+    .policy-copy h2 {
+      margin: 42px 0 12px;
+      color: var(--accent);
+      font-family: "Cormorant Garamond", serif;
+      font-size: 30px;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+    .policy-copy p { margin: 0 0 18px; }
+    .policy-copy ul { margin: 0 0 22px; padding-left: 1.5em; }
+    .policy-copy li { margin: 8px 0; }
+    .policy-copy a { overflow-wrap: anywhere; }
+    .policy-copy .effective-date {
+      color: var(--chalk-dim);
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
     /* Landing page: a compact statement framed by the shared page fabric. */
     .landing {
       position: relative;
@@ -621,6 +652,7 @@
       font-style: normal;
       font-size: 16px;
     }
+    html.reader-view .policy-copy,
     html.reader-view .essay,
     html.reader-view .footnotes,
     html.reader-view .footer { max-width: 760px; padding-right: 24px; padding-left: 24px; }
@@ -816,7 +848,7 @@
   <!-- Footer -->
   <footer class="footer">
     <span class="tick">Pythia Software LLC &middot; MMXXVI</span>
-    <span class="tick"><a href="/about">About</a> &middot; <a href="/contact.html">Contact</a></span>
+    <span class="tick"><a href="/about">About</a> &middot; <a href="/contact.html">Contact</a> &middot; <a href="/privacy">Privacy</a> &middot; <a href="/terms">Terms</a></span>
   </footer>
 
   <!-- Fabric overlay — rope SVG is injected here by the script below. -->
@@ -1313,6 +1345,10 @@
     const pageEl   = document.getElementById('page');
     const fabricEl = document.getElementById('fabric');
     if (!pageEl || !fabricEl) return;
+    if (pageEl.querySelector('.policy-copy')) {
+      fabricEl.textContent = '';
+      return;
+    }
     if (document.documentElement.classList.contains('reader-view')) {
       fabricEl.textContent = '';
       return;
